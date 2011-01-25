@@ -22,12 +22,12 @@
 			Loading...
 		</div>
         <div id="logo">
-            <h1>Black Ops Remote Console <a href="<?php echo URL::site('login/out') ?>" style="color: #fff">(logout)</a></h1>
+            <h1>Black Ops Remote Console <a href="<?php echo URL::site('login/out') ?>" style="color: #fff">(<?php echo __('logout') ?>)</a></h1>
         </div>
         <ul id="menu">
-        	<li<?php if($tab == 'rcon'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('dashboard/index') ?>">Server console</a></li>
-			<li<?php if($tab == 'users'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('users/index') ?>">Users</a></li>
-			<li<?php if($tab == 'servers'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('servers/index') ?>">Servers</a></li>
+        	<li<?php if($tab == 'rcon'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Server console') ?></a></li>
+			<li<?php if($tab == 'users'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('users/index') ?>"><?php echo __('Users') ?></a></li>
+			<li<?php if($tab == 'servers'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('servers/index') ?>"><?php echo __('Servers') ?></a></li>
         </ul>
         <?php if($notice): ?>
         <div class="message"><?php echo $notice ?></div>

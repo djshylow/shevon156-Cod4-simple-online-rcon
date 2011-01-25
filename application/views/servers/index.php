@@ -6,15 +6,15 @@
 </ul>
 </div>
 <div id="rightblock">
-<h2>Servers</h2>
+<h2><?php echo __('Servers') ?></h2>
 <table cellspacing="0" cellpadding="0">
 	<thead>
 		<tr>
-			<td>ID</td>
-			<td>Name</td>
-			<td>Host</td>
-			<td>Port</td>
-			<td>Actions</td>
+			<td><?php echo __('ID') ?></td>
+			<td><?php echo __('Server name') ?></td>
+			<td><?php echo __('Host') ?></td>
+			<td><?php echo __('Port') ?></td>
+			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
 	<tbody>
@@ -25,35 +25,35 @@
 			<td><?php echo $s->ip ?></td>
 			<td><?php echo $s->port ?></td>
 			<td>
-                <a href="<?php echo URL::site('servers/edit/'.$s->id) ?>" class="button" style="background-image: url(images/edit.png)">Edit</a>
-                <a href="<?php echo URL::site('servers/delete/'.$s->id) ?>" class="button" style="background-image: url(images/delete.png)">Delete</a>
+                <a href="<?php echo URL::site('servers/edit/'.$s->id) ?>" class="button" style="background-image: url(images/edit.png)"><?php echo __('Edit') ?></a>
+                <a href="<?php echo URL::site('servers/delete/'.$s->id) ?>" class="button" style="background-image: url(images/delete.png)"><?php echo __('Delete') ?></a>
 			</td>
 		</tr>
 		<?php endforeach; ?>
 	</tbody>
 </table>
-<h2>Add server</h2>
+<h2><?php echo __('Add server') ?></h2>
 <div class="group">
 	<div class="content">
 		<form action="<?php echo URL::site('servers/index') ?>" method="post">
 			<div>
-				<label>Name:</label>
+				<label><?php echo __('Server name') ?>:</label>
 				<input type="text" name="name" value="" />
 			</div>
 			<div>
-				<label>Server IP:</label>
+				<label><?php echo __('Server IP') ?>:</label>
 				<input type="text" name="ip" value="" />
 			</div>
 			<div>
-				<label>Port:</label>
+				<label><?php echo __('Port') ?>:</label>
 				<input type="text" name="port" value="" />
 			</div>
 			<div>
-				<label>RCon password:</label>
+				<label><?php echo __('RCon password') ?>:</label>
 				<input type="text" name="password" value="" />
 			</div>
 			<div>
-				<input style="width: auto" type="submit" name="submit" value="Submit" />
+				<input style="width: auto" type="submit" name="submit" value="<?php echo __('Add') ?>" />
 			</div>
 		</form>
 	</div>

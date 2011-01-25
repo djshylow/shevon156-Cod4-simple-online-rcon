@@ -68,8 +68,43 @@ class Controller_Dashboard extends Controller_Main {
             // Commands
             $commands = new Rcon_Commands($rcon);
 
+            $first_team = array(); $second_team = array(); $spectators = array();
+            
             // Get server info
             $server_info = $commands->get_server_info();
+            $server_info = array_merge($server_info, array('ip' => $current_server->ip, 'port' => $current_server->port));
+            $server_info['colored_hostname'] = Rcon_Constants::colorize($server_info['sv_hostname']);
+            $server_info['playlist_name'] = Rcon_Constants::$playlists[$server_info['playlist']];
+            $server_info['map_name'] = Rcon_Constants::$maps[$server_info['map']];
+            $server_info['gametype_name'] = Rcon_Constants::$gametypes[$server_info['g_gametype']];
+            $server_info['gametype_abbrev'] = Rcon_Constants::$gametypes_abbrev[$server_info['g_gametype']];
+            
+       		$first_team = array(); $second_team = array(); $spectators = array();
+            
+	        foreach($server_info['players'] as $player)
+		    {
+		    	if ( $pos = strpos($player['address'], ':') )
+		    	{
+		    		$player['ip'] = substr($player['address'], 0, $pos);
+		    	}
+		        if($player['team'] == 1)
+		        {
+		            $first_team[] = $player;
+		        }
+		        elseif($player['team'] == 2)
+		        {
+		            $second_team[] = $player;
+		        }
+		        else
+		        {
+		            $spectators[] = $player;
+		        }
+		    }
+		    $server_info['count_players'] = count($server_info['players']);
+		    if ( isset($server_info['players'][0]) && $server_info['players'][0]['team'] == 3 && $server_info['players'][0]['name'] == 'democlient'  )
+		    {
+		    	$server_info['count_players']--;
+		    }
         }
         catch(Exception $e)
         {
@@ -83,6 +118,9 @@ class Controller_Dashboard extends Controller_Main {
         // Server info
         $view->server_info = $server_info;
         $view->permissions = $permissions;
+        $view->first_team = $first_team;
+        $view->second_team = $second_team;
+        $view->spectators = $spectators;
 
         // Get available servers
         $servers = array();
@@ -520,8 +558,40 @@ class Controller_Dashboard extends Controller_Main {
 
         // Exception catch
         try {
+        	$first_team = array(); $second_team = array(); $spectators = array();
             // Get server info
             $server_info = $commands->get_server_info();
+            $server_info = array_merge($server_info, array('ip' => $current_server->ip, 'port' => $current_server->port));
+            $server_info['colored_hostname'] = Rcon_Constants::colorize($server_info['sv_hostname']);
+            $server_info['playlist_name'] = Rcon_Constants::$playlists[$server_info['playlist']];
+            $server_info['map_name'] = Rcon_Constants::$maps[$server_info['map']];
+            $server_info['gametype_name'] = Rcon_Constants::$gametypes[$server_info['g_gametype']];
+            $server_info['gametype_abbrev'] = Rcon_Constants::$gametypes_abbrev[$server_info['g_gametype']];
+            
+	        foreach($server_info['players'] as $player)
+		    {
+		    	if ( $pos = strpos($player['address'], ':') )
+		    	{
+		    		$player['ip'] = substr($player['address'], 0, $pos);
+		    	}
+		        if($player['team'] == 1)
+		        {
+		            $first_team[] = $player;
+		        }
+		        elseif($player['team'] == 2)
+		        {
+		            $second_team[] = $player;
+		        }
+		        else
+		        {
+		            $spectators[] = $player;
+		        }
+		    }
+		    $server_info['count_players'] = count($server_info['players']);
+		    if ( isset($server_info['players'][0]) && $server_info['players'][0]['team'] == 3 && $server_info['players'][0]['name'] == 'democlient'  )
+		    {
+		    	$server_info['count_players']--;
+		    }
         }
         catch(Exception $e) {
            // Default
@@ -534,6 +604,10 @@ class Controller_Dashboard extends Controller_Main {
         // Server info
         $this->view->server_info = $server_info;
         $this->view->permissions = $permissions;
+        $this->view->current_server_id = $current_server->id;
+        $this->view->first_team = $first_team;
+        $this->view->second_team = $second_team;
+        $this->view->spectators = $spectators;
 
         // Get available servers
         $servers = array();
@@ -677,10 +751,15 @@ class Controller_Dashboard extends Controller_Main {
         }
     }
 
-    public function action_set_server()
-    {
+    public function action_set_server($id = NULL)
+    {	
         // Invalid request
-        if(!isset($_POST['server']) OR !ctype_digit($_POST['server']))
+        if( (!isset($_POST['server']) OR !ctype_digit($_POST['server']))
+        	AND
+        	(!isset($_GET['server']) OR !ctype_digit($_GET['server']))
+        	AND
+        	!ctype_digit($id) 
+        )
         {
             throw new Kohana_Exception('Invalid request');
         }
@@ -689,7 +768,11 @@ class Controller_Dashboard extends Controller_Main {
         $this->do_force_login();
 
         // ID
-        $id = (int) $_POST['server'];
+        $id = (int) ( 
+        			isset($_POST['server']) ? $_POST['server'] : 
+        			( isset($_GET['server']) ? $_GET['server'] : 
+       					$id ) 
+        			);
         $found = FALSE;
 
         // Get owned servers

@@ -1,19 +1,19 @@
 <div id="leftblock">
-	<h2>Navigation</h2>
+	<h2><?php echo __('Navigation') ?></h2>
     <ul class="leftmenu">
         <li><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Players list') ?></a></li>
-    	<li style="background-image: url(images/log.png)"><a href="<?php echo URL::site('dashboard/logs') ?>">Player log</a></li>
-		<li style="background-image: url(images/msg.png)" class="active"><a>Message rotation</a></li>
+    	<li style="background-image: url(images/log.png)"><a href="<?php echo URL::site('dashboard/logs') ?>"><?php echo __('Player log') ?></a></li>
+		<li style="background-image: url(images/msg.png)" class="active"><a><?php echo __('Message rotation') ?></a></li>
     </ul>
 </div>
 <div id="rightblock">
-	<h2>Message rotation</h2>
+	 <h2><?php echo __('Message rotation') ?></h2>
 	<table cellspacing="0" cellpadding="0">
 		<thead>
 			<tr>
-				<td>Username</td>
-				<td>Message</td>
-				<td>Remove</td>
+				<td><?php echo __('Username') ?></td>
+				<td><?php echo __('Message') ?></td>
+				<td><?php echo __('Remove') ?></td>
 			</tr>
 		</thead>
 		<tbody>
@@ -28,7 +28,7 @@
 			<?php endforeach; ?>
 		</tbody>
 	</table>
-	<h2>Add message</h2>
+	<h2><?php echo __('Add message') ?></h2>
     <div class="group">
         <div class="content">
             <form action="<?php echo URL::site('dashboard/msgrotation') ?>" method="post">
@@ -37,7 +37,7 @@
                     <input type="text" name="message" id="message" />
                 </div>
                 <div>
-                    <input type="submit" style="width: auto" name="submit" value="<?php echo __('Submit') ?>" />
+                    <input type="submit" style="width: auto" name="submit" value="<?php echo __('Add') ?>" />
                 </div>
             </form>
         </div>

@@ -1,9 +1,9 @@
 <div id="leftblock">
-	<h2>Navigation</h2>
+	<h2><?php echo __('Navigation') ?></h2>
     <ul class="leftmenu">
         <li><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Players list') ?></a></li>
-    	<li style="background-image: url(images/log.png)" class="active"><a>Player log</a></li>
-		<li style="background-image: url(images/msg.png)"><a href="<?php echo URL::site('dashboard/msgrotation') ?>">Message rotation</a></li>
+    	<li style="background-image: url(images/log.png)" class="active"><a><?php echo __('Player log') ?></a></li>
+		<li style="background-image: url(images/msg.png)"><a href="<?php echo URL::site('dashboard/msgrotation') ?>"><?php echo __('Message rotation') ?></a></li>
     </ul>
 </div>
 <div class="detail-window">
@@ -16,15 +16,15 @@
 	</ul>
 </div>
 <div id="rightblock">
-	<h2>Player log</h2>
+	<h2><?php echo __('Player log') ?></h2>
 	<table cellspacing="0" cellpadding="0">
 		<thead>
 			<tr>
-				<td>GUID</td>
-				<td>Last scan</td>
-				<td>Last name</td>
-				<td>Last IP</td>
-				<td>Details</td>
+				<td><?php echo __('GUID') ?></td>
+				<td><?php echo __('Last scan') ?></td>
+				<td><?php echo __('Last name') ?></td>
+				<td><?php echo __('Last IP') ?></td>
+				<td><?php echo __('Details') ?></td>
 			</tr>
 		</thead>
 		<tbody>
@@ -47,7 +47,7 @@
 					<?php echo strip_tags(end($log['ip_addresses'])); ?>
 				</td>
 				<td>
-					<a class="button" onclick="rconPlayerDetails(<?php echo $log['id'] ?>)">Details</a>
+					<a class="button" onclick="rconPlayerDetails(<?php echo $log['id'] ?>)"><?php echo __('Details') ?></a>
 				</td>
 			</tr>
 			<?php endforeach; ?>

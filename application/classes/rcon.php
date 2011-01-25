@@ -66,7 +66,7 @@ class Rcon {
         }
 
         // Send command
-        fwrite($this->socket, "\xff\xff\xff\xff\x00".$this->password.' '.$command."\x00");
+        fwrite($this->socket, "\xff\xff\xff\xff\x00".$this->password."\x20".$command."\x00");
 
         // Wait for response?
         if($return_response)
@@ -124,8 +124,8 @@ class Rcon {
         $response = '';
 
         // Set socket timeout
-        stream_set_timeout($this->socket, 0, 7e5);
-
+        stream_set_timeout($this->socket, 0, 7e5);    
+        
         // Lol how rare
         do
         {
@@ -146,7 +146,7 @@ class Rcon {
             $response .= substr(trim($stream_read, "\x0a"), 11);
         }
         while(!$stream_info['timed_out']);
-
+        
         // Return
         return $response;
     }

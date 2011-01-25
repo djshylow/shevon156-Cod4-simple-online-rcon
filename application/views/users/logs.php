@@ -1,19 +1,19 @@
 <div id="leftblock">
-	<h2>Navigation</h2>
+	 <h2><?php echo __('Navigation') ?></h2>
     <ul class="leftmenu">
         <li><a href="<?php echo URL::site('users/index') ?>"><?php echo __('Manage users') ?></a></li>
     	<li class="active" style="background-image: url(images/log.png)"><a><?php echo __('Actions log') ?></a></li>
     </ul>
 </div>
 <div id="rightblock">
-<h2>Logs</h2>
+ <h2><?php echo __('Logs') ?></h2>
 <table cellspacing="0" cellpadding="0">
 	<thead>
 		<tr>
-			<td>ID</td>
-			<td>Username</td>
-			<td>Date</td>
-			<td>Action</td>
+			<td><?php echo __('ID') ?></td>
+			<td><?php echo __('Username') ?></td>
+			<td><?php echo __('Date') ?></td>
+			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
 	<tbody>
