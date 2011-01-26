@@ -300,6 +300,11 @@ ul.leftmenu li.active, ul.leftmenu li:hover {
 	background-color: #FFF;
 }
 
+ul.leftmenu img {
+	vertical-align: middle;
+	float: right;
+}
+
 ul.servers li {
 	background-image: none;
 	padding-left: 5px;

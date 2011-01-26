@@ -1,8 +1,7 @@
 <div id="leftblock">
 	 <h2><?php echo __('Navigation') ?></h2>
     <ul class="leftmenu">
-        <li class="active"><a><?php echo __('Players list') ?></a></li>
-        <li onclick="rconRefresh()" style="background-image: url(images/refresh.png)"><a onclick="rconRefresh()"><?php echo __('Refresh player list') ?></a></li>
+        <li class="active"><a><?php echo __('Players list') ?></a><img title="<?php echo __('Refresh player list') ?>" alt="Rfrsh" src="/images/refresh.png" onclick="rconRefresh()" /></li>
     	<li style="background-image: url(images/log.png)"><a href="<?php echo URL::site('dashboard/logs') ?>"><?php echo __('Player log') ?></a></li>
 		<li style="background-image: url(images/msg.png)"><a href="<?php echo URL::site('dashboard/msgrotation') ?>"><?php echo __('Message rotation') ?></a></li>
     </ul>
