@@ -1,21 +1,5 @@
 <div id="leftblock">
-	 <h2><?php echo __('Navigation') ?></h2>
-    <ul class="leftmenu">
-        <li class="active"><a><?php echo __('Players list') ?></a><img title="<?php echo __('Refresh player list') ?>" alt="Rfrsh" src="/images/refresh.png" onclick="rconRefresh()" /></li>
-    	<li style="background-image: url(images/log.png)"><a href="<?php echo URL::site('dashboard/logs') ?>"><?php echo __('Player log') ?></a></li>
-		<li style="background-image: url(images/msg.png)"><a href="<?php echo URL::site('dashboard/msgrotation') ?>"><?php echo __('Message rotation') ?></a></li>
-    </ul>
-    <!-- Server Select Begin -->
-    <br />
-    <h2><?php echo __('Select server') ?></h2>
-    <ul class="leftmenu servers">
-    	<?php foreach($owned as $serv): ?>
-    		<li<?php if($current_server_id == $serv['id']): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('dashboard/set_server/'.$serv['id'])?>"><?php echo HTML::chars($serv['name']) ?></a></li>
-    	<?php endforeach; ?>
-    </ul>
-    <!-- Server Select End -->
-    
-    
+	<?php echo $navigation		/* views/dashboard/navigation.php */ ?>
 </div>
 <div id="rightblock">
 <h2><?php echo __('Server info') ?></h2>

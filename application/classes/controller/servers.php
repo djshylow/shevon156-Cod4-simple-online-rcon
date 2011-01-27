@@ -54,19 +54,24 @@ class Controller_Servers extends Controller_Main {
                 $permissions |= SERVER_BAN;
             }
 
-                    if(isset($_POST['can_temp_ban']) AND $_POST['can_temp_ban'] == '1')
+            if(isset($_POST['can_temp_ban']) AND $_POST['can_temp_ban'] == '1')
             {
                 $permissions |= SERVER_TEMP_BAN;
             }
 
-                    if(isset($_POST['can_messages']) AND $_POST['can_messages'] == '1')
+            if(isset($_POST['can_messages']) AND $_POST['can_messages'] == '1')
             {
                 $permissions |= SERVER_MESSAGE;
             }
 
-                            if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
+            if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
             {
                 $permissions |= SERVER_USER_LOG;
+            }
+            
+        	if(isset($_POST['can_playlists']) AND $_POST['can_playlists'] == '1')
+            {
+                $permissions |= SERVER_PLAYLIST;
             }
 
             DB::insert('servers_users', array('user_id', 'server_id', 'permissions'))
@@ -81,8 +86,8 @@ class Controller_Servers extends Controller_Main {
                 ':server' => ORM::factory('server', $server_id)->name,
             )));
 
-                            $this->notice('Permissions added');
-                $this->request->redirect('servers/permissions');
+			$this->notice('Permissions added');
+			$this->request->redirect('servers/permissions');
         }
 
         $this->view = new View('servers/permissions');

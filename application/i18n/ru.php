@@ -69,7 +69,7 @@ return array
 'Admins' => 'Администраторы',
 'User' => 'Пользователь',
 'Server' => 'Сервер',
-'Can kick/ban/temp ban/message/user log' => 'Права: кик/бан/временный бан/отправка сообщения/просмотр логов',
+'Can kick/ban/temp ban/message/user log/playlists' => 'Права: кик/бан/временный бан/отправка сообщения/просмотр логов/плейлисты',
 'Server' => 'Сервер',
 'Assign new permissions' => 'Назначить новые права',
 'Can kick' => 'Возможность кикать',

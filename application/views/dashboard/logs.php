@@ -1,10 +1,5 @@
 <div id="leftblock">
-	<h2><?php echo __('Navigation') ?></h2>
-    <ul class="leftmenu">
-        <li><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Players list') ?></a></li>
-    	<li style="background-image: url(images/log.png)" class="active"><a><?php echo __('Player log') ?></a></li>
-		<li style="background-image: url(images/msg.png)"><a href="<?php echo URL::site('dashboard/msgrotation') ?>"><?php echo __('Message rotation') ?></a></li>
-    </ul>
+	<?php echo $navigation		/* views/dashboard/navigation.php */ ?>
 </div>
 <div class="detail-window">
 	<h2>Details <a style="cursor: pointer" onclick="$(this).parent().parent().hide('slow')">[close window]</a></h2>

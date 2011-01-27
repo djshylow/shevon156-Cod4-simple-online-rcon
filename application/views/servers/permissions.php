@@ -13,7 +13,7 @@
 		<tr>
 			<td><?php echo __('User') ?></td>
 			<td><?php echo __('Server') ?></td>
-			<td><?php echo __('Can kick/ban/temp ban/message/user log') ?></td>
+			<td><?php echo __('Can kick/ban/temp ban/message/user log/playlists') ?></td>
 			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
@@ -28,7 +28,8 @@
 			    <?php echo ($permissions & SERVER_BAN) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_TEMP_BAN) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_MESSAGE) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_USER_LOG) ? 'Yes' : 'No' ?>
+			    <?php echo ($permissions & SERVER_USER_LOG) ? 'Yes' : 'No' ?>/
+			    <?php echo ($permissions & SERVER_PLAYLIST) ? 'Yes' : 'No' ?>
 			</td>
 			<td>
                 <a href="<?php echo URL::site('servers/permissions_delete/'.$s['user_id'].'/'.$s['server_id']) ?>" class="button" style="background-image: url(images/delete.png)"><?php echo __('Delete') ?></a>
@@ -68,6 +69,10 @@
 			<div>
 				<label><?php echo __('Can view user logs') ?>:</label>
 				<input type="checkbox" name="can_logs" style="width: auto" value="1" />
+			</div>
+			<div>
+				<label><?php echo __('Can set playlists') ?>:</label>
+				<input type="checkbox" name="can_playlists" style="width: auto" value="1" />
 			</div>
 			<div>
 				<input style="width: auto" type="submit" name="submit" value="<?php echo __('Add/Apply') ?>" />

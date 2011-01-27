@@ -1,6 +1,21 @@
 <?php
 class Controller_Dashboard extends Controller_Main {
 
+	protected $action = NULL;
+	private $owned = NULL;
+	private $current_server = NULL;
+	
+	public function after()
+    {
+        $this->view->navigation = new View('dashboard/navigation');
+     
+        $this->view->navigation->action = $this->action;
+        $this->view->navigation->owned = $this->owned;
+        $this->view->navigation->current_server_id = $this->current_server['id'];
+        
+        parent::after();
+    }
+	
     public function action_ajaxindex()
     {
         // Ajax?
@@ -13,56 +28,28 @@ class Controller_Dashboard extends Controller_Main {
         $this->do_force_login();
 
         // Get owned servers
-        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
+        $owned = $this->get_owned_servers();
+        $this->owned = $owned;
 
         // No servers?
-        if(count($owned) <= 0)
+        if( empty($owned) )
         {
             echo json_encode(array('error' => 'Invalid server', 'content' => ''));
             exit;
         }
 
-        // Default server
-        $current_server = 0;
-
-        // Get ID from session
-        if(is_int($this->session->get('current_server')) OR ctype_digit($this->session->get('current_server')))
-        {
-            foreach($owned as $o)
-            {
-                if($o['server_id'] == (int) $this->session->get('current_server'))
-                {
-                    $current_server = $o;
-                    break;
-                }
-            }
-        }
-
-        // Get default
-        if(!$current_server)
-        {
-            foreach($owned as $o)
-            {
-                $current_server = $o;
-                break;
-            }
-        }
-
-        // Fetch server data
-        $permissions = (int) $current_server['permissions'];
-        $current_server = ORM::factory('server', $current_server['server_id']);
-
-        // Found?
-        if(!$current_server->loaded())
+        $current_server = $this->get_current_server();
+		if(!$current_server)
         {
             echo json_encode(array('error' => 'Invalid server', 'content' => ''));
             exit;
         }
+        $this->current_server = $current_server;
 
         // Catch them all
         try {
             // Rcon connection
-            $rcon = new Rcon($current_server->ip, $current_server->port, $current_server->password);
+            $rcon = new Rcon($current_server['ip'], $current_server['port'], $current_server['password']);
             $rcon->connect();
 
             // Commands
@@ -72,7 +59,7 @@ class Controller_Dashboard extends Controller_Main {
             
             // Get server info
             $server_info = $commands->get_server_info();
-            $server_info = array_merge($server_info, array('ip' => $current_server->ip, 'port' => $current_server->port));
+            $server_info += array('ip' => $current_server['ip'], 'port' => $current_server['port']);
             $server_info['colored_hostname'] = Rcon_Constants::colorize($server_info['sv_hostname']);
             $server_info['playlist_name'] = Rcon_Constants::$playlists[$server_info['playlist']];
             $server_info['map_name'] = Rcon_Constants::$maps[$server_info['map']];
@@ -86,6 +73,10 @@ class Controller_Dashboard extends Controller_Main {
 		    	if ( $pos = strpos($player['address'], ':') )
 		    	{
 		    		$player['ip'] = substr($player['address'], 0, $pos);
+		    	}
+		    	else
+		    	{
+		    		$player['ip'] = $player['address'];
 		    	}
 		        if($player['team'] == 1)
 		        {
@@ -117,28 +108,10 @@ class Controller_Dashboard extends Controller_Main {
 
         // Server info
         $view->server_info = $server_info;
-        $view->permissions = $permissions;
+        $view->permissions = $current_server['permissions'];
         $view->first_team = $first_team;
         $view->second_team = $second_team;
         $view->spectators = $spectators;
-
-        // Get available servers
-        $servers = array();
-
-        // Iterate
-        foreach($owned as $o)
-        {
-            $servers[] = $o['server_id'];
-        }
-
-        // Owned
-        $owned = array();
-
-        // Get server names
-        foreach(DB::select('id', 'name')->from('servers')->where('id', 'IN', $servers)->execute() as $serv)
-        {
-            $owned[] = $serv;
-        }
 
         // Owned
         $view->owned = $owned;
@@ -497,71 +470,42 @@ class Controller_Dashboard extends Controller_Main {
 
     public function action_index()
     {
+    	$this->action = 'index';
+    	
         // Only logged in users
         $this->do_force_login();
-
+        
         // Title
         $this->title = __('Remote console');
 
-        // Get owned servers
-        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
-
-        // No servers?
-        if(count($owned) <= 0)
+        $owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
         {
-            $this->view = new View('dashboard/noservers');
+        	$this->view = new View('dashboard/noservers');
             return;
         }
-
-        // Default server
-        $current_server = 0;
-
-        // Get ID from session
-        if(is_int($this->session->get('current_server')) OR ctype_digit($this->session->get('current_server')))
-        {
-            foreach($owned as $o)
-            {
-                if($o['server_id'] == (int) $this->session->get('current_server'))
-                {
-                    $current_server = $o;
-                    break;
-                }
-            }
-        }
-
-        // Get default
-        if(!$current_server)
-        {
-            foreach($owned as $o)
-            {
-                $current_server = $o;
-                break;
-            }
-        }
-
-        // Fetch server data
-        $permissions = (int) $current_server['permissions'];
-        $current_server = ORM::factory('server', $current_server['server_id']);
-
-        // Found?
-        if(!$current_server->loaded())
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
         {
             throw new Kohana_Exception('Invalid server');
         }
+        $this->current_server = $current_server;
 
         // Rcon connection
-        $rcon = new Rcon($current_server->ip, $current_server->port, $current_server->password);
+        $rcon = new Rcon($current_server['ip'], $current_server['port'], $current_server['password']);
         $rcon->connect();
 
         // Commands
         $commands = new Rcon_Commands($rcon);
 
-        // Exception catch
         try {
         	$first_team = array(); $second_team = array(); $spectators = array();
             // Get server info
             $server_info = $commands->get_server_info();
-            $server_info = array_merge($server_info, array('ip' => $current_server->ip, 'port' => $current_server->port));
+            $server_info += array('ip' => $current_server['ip'], 'port' => $current_server['port']);
             $server_info['colored_hostname'] = Rcon_Constants::colorize($server_info['sv_hostname']);
             $server_info['playlist_name'] = Rcon_Constants::$playlists[$server_info['playlist']];
             $server_info['map_name'] = Rcon_Constants::$maps[$server_info['map']];
@@ -573,6 +517,10 @@ class Controller_Dashboard extends Controller_Main {
 		    	if ( $pos = strpos($player['address'], ':') )
 		    	{
 		    		$player['ip'] = substr($player['address'], 0, $pos);
+		    	}
+		    	else
+		    	{
+		    		$player['ip'] = $player['address'];
 		    	}
 		        if($player['team'] == 1)
 		        {
@@ -603,29 +551,11 @@ class Controller_Dashboard extends Controller_Main {
 
         // Server info
         $this->view->server_info = $server_info;
-        $this->view->permissions = $permissions;
-        $this->view->current_server_id = $current_server->id;
+        $this->view->permissions = (int) $current_server['permissions'];
+        $this->view->current_server_id = $current_server['id'];
         $this->view->first_team = $first_team;
         $this->view->second_team = $second_team;
         $this->view->spectators = $spectators;
-
-        // Get available servers
-        $servers = array();
-
-        // Iterate
-        foreach($owned as $o)
-        {
-            $servers[] = $o['server_id'];
-        }
-
-        // Owned
-        $owned = array();
-
-        // Get server names
-        foreach(DB::select('id', 'name')->from('servers')->where('id', 'IN', $servers)->execute() as $serv)
-        {
-            $owned[] = $serv;
-        }
 
         // Owned
         $this->view->owned = $owned;
@@ -815,6 +745,8 @@ class Controller_Dashboard extends Controller_Main {
 
     public function action_msgrotation($id = NULL)
     {
+    	$this->action = 'msgrotation';
+    	
         // Only logged in users
         $this->do_force_login();
 
@@ -831,44 +763,24 @@ class Controller_Dashboard extends Controller_Main {
             return;
         }
 
-        // Default server
-        $current_server = 0;
-
-        // Get ID from session
-        if(is_int($this->session->get('current_server')) OR ctype_digit($this->session->get('current_server')))
+     	$owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
         {
-            foreach($owned as $o)
-            {
-                if($o['server_id'] == (int) $this->session->get('current_server'))
-                {
-                    $current_server = $o;
-                    break;
-                }
-            }
+        	$this->view = new View('dashboard/noservers');
+            return;
         }
-
-        // Get default
-        if(!$current_server)
-        {
-            foreach($owned as $o)
-            {
-                $current_server = $o;
-                break;
-            }
-        }
-
-        // Fetch server data
-        $permissions = (int) $current_server['permissions'];
-        $current_server = ORM::factory('server', $current_server['server_id']);
-
-        // Found?
-        if(!$current_server->loaded())
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
         {
             throw new Kohana_Exception('Invalid server');
         }
+        $this->current_server = $current_server;
 
         // Check permissions
-        if(!($permissions & SERVER_MESSAGE))
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_MESSAGE))
         {
             throw new Kohana_Exception('No permissions');
         }
@@ -877,7 +789,7 @@ class Controller_Dashboard extends Controller_Main {
         if(isset($_POST['submit']) AND isset($_POST['message']))
         {
             DB::insert('messages', array('user_id', 'server_id', 'message'))->values(array(
-                $this->user->id, (int) $current_server->id, Security::xss_clean($_POST['message'])
+                $this->user->id, (int) $current_server['id'], Security::xss_clean($_POST['message'])
             ))->execute();
 
             $this->notice(__('Message added'));
@@ -893,7 +805,7 @@ class Controller_Dashboard extends Controller_Main {
             $message = new Model_Message((int) $id);
 
             // Found?
-            if(!$message->loaded() OR $message->server_id != $current_server->id)
+            if(!$message->loaded() OR $message->server_id != $current_server['id'])
             {
                 throw new Exception('Not found');
             }
@@ -924,13 +836,15 @@ class Controller_Dashboard extends Controller_Main {
         $this->view = new View('dashboard/messages');
 
         // Messages
-        $this->view->messages = DB::select('messages.id', 'messages.message', 'users.username')->where('server_id', '=', $current_server->id)
+        $this->view->messages = DB::select('messages.id', 'messages.message', 'users.username')->where('server_id', '=', $current_server['id'])
                                 ->join('users', 'LEFT')->on('users.id', '=', 'messages.user_id')
                                 ->from('messages')->order_by('messages.id', 'DESC')->execute();
     }
 
     public function action_logs($guid = NULL)
     {
+    	$this->action = 'logs';
+    	
         // Only logged in users
         $this->do_force_login();
 
@@ -947,7 +861,204 @@ class Controller_Dashboard extends Controller_Main {
             return;
         }
 
-        // Default server
+     	$owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
+        {
+        	$this->view = new View('dashboard/noservers');
+            return;
+        }
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
+        {
+            throw new Kohana_Exception('Invalid server');
+        }
+        $this->current_server = $current_server;
+
+        // Check permissions
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_USER_LOG))
+        {
+            throw new Kohana_Exception('No permissions');
+        }
+
+        // Ajax
+        if(Request::$is_ajax AND $guid !== NULL AND ctype_digit($guid))
+        {
+
+            // Find
+            $log = DB::select('names', 'ip_addresses')->where('server_id', '=', $current_server['id'])
+                   ->where('id', '=', (int) $guid)->from('players')->execute();
+
+            // Valid
+            if(count($log))
+            {
+                $log = $log->as_array();
+                $log = current($log);
+
+                $log['names'] = empty($log['names']) ? array() : unserialize($log['names']);
+                $log['ip_addresses'] = empty($log['ip_addresses']) ? array() : unserialize($log['ip_addresses']);
+                array_map('strip_tags', $log['names']);
+                echo json_encode(array('error' => 'None', 'ip' => '<li>'.implode('</li><li>', $log['ip_addresses']).'</li>',
+                                       'names' => '<li>'.implode('</li><li>', $log['names']).'</li>'));
+            }
+            else
+            {
+                echo json_encode(array('error' => 'Log not found'));
+            }
+
+            // Exit
+            exit;
+        }
+
+        // View
+        $this->view = new View('dashboard/logs');
+
+        // Logs
+        $this->view->logs = DB::select('*')->where('server_id', '=', $current_server['id'])->from('players')->order_by('last_update', 'DESC')->execute();
+    }
+    
+    public function action_playlists()
+    {
+    	$this->action = 'playlists';
+    	
+    // Only logged in users
+        $this->do_force_login();
+
+        // Title
+        $this->title = __('Message rotation');
+
+        // Get owned servers
+        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
+
+        // No servers?
+        if(count($owned) <= 0)
+        {
+            $this->view = new View('dashboard/noservers');
+            return;
+        }
+
+     	$owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
+        {
+        	$this->view = new View('dashboard/noservers');
+            return;
+        }
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
+        {
+            throw new Kohana_Exception('Invalid server');
+        }
+        $this->current_server = $current_server;
+
+        // Check permissions
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_PLAYLIST))
+        {
+            throw new Kohana_Exception('No permissions');
+        }
+    	
+		$this->view = new View('dashboard/playlists');
+    }
+    
+    protected function get_owned_servers()
+    {
+    	$owned = DB::select('server_id', 'permissions')->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
+    	
+    	if(count($owned) <= 0)
+    	{
+    		return array();
+    	}
+    	
+	    // Get available servers
+        $servers = array();
+
+        // Iterate
+        foreach($owned as $o)
+        {
+            $servers[(int) $o['server_id']] = $o;
+        }
+
+        // Get server names
+        foreach(DB::select('id', 'name')->from('servers')->where('id', 'IN', array_keys($servers))->execute() as $serv)
+        {
+            $servers[$serv['id']] += $serv;
+        }
+        
+        return $servers;
+    }
+    
+    protected function get_current_server()
+    {
+    	// Default server
+        $current_server = 0;
+
+        // Get ID from session and check if the user ownes the current
+        if(is_int($this->session->get('current_server')) OR ctype_digit($this->session->get('current_server')))
+        {
+            foreach($this->owned as $o)
+            {
+                if($o['server_id'] == (int) $this->session->get('current_server'))
+                {
+                    $current_server = $o;
+                    break;
+                }
+            }
+        }
+
+        // Get default
+        if(!$current_server)
+        {
+            foreach($this->owned as $o)
+            {
+                $current_server = $o;
+                break;
+            }
+        }
+        
+        // Get all the info (id, name, ip, port, password) for current server
+        $server = DB::select()->from('servers')->where('id', '=', $current_server['server_id'])->execute();
+        
+        if ( count($server)<=0 )
+        {
+        	return false;
+        }
+        
+        $current_server += $server[0];
+        
+        return $current_server;
+    }
+    
+    private function checkPermission($permissions, $permission_to_check)
+    {
+    	if( !($permissions & $permission_to_check) )
+        {
+        	return false;
+        }
+        else
+        {
+        	return true;
+        }
+    }
+    
+    private function do_get_owned_servers($permission_to_check = NULL)
+    {
+    	$is_ajax = Request::$is_ajax;
+    	
+    	// Get owned servers
+        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
+        
+        // No servers?
+        if(count($owned) <= 0)
+        {
+            $this->view = new View('dashboard/noservers');
+            return;
+        }
+        
+    	// Default server
         $current_server = 0;
 
         // Get ID from session
@@ -982,46 +1093,26 @@ class Controller_Dashboard extends Controller_Main {
         {
             throw new Kohana_Exception('Invalid server');
         }
+        
+        // Get available servers
+        $servers = array();
 
-        // Check permissions
-        if(!($permissions & SERVER_USER_LOG))
+        // Iterate
+        foreach($owned as $o)
         {
-            throw new Kohana_Exception('No permissions');
+            $servers[] = $o['server_id'];
         }
 
-        // Ajax
-        if(Request::$is_ajax AND $guid !== NULL AND ctype_digit($guid))
+        // Owned
+        $owned = array();
+
+        // Get server names
+        foreach(DB::select('id', 'name')->from('servers')->where('id', 'IN', $servers)->execute() as $serv)
         {
-
-            // Find
-            $log = DB::select('names', 'ip_addresses')->where('server_id', '=', $current_server->id)
-                   ->where('id', '=', (int) $guid)->from('players')->execute();
-
-            // Valid
-            if(count($log))
-            {
-                $log = $log->as_array();
-                $log = current($log);
-
-                $log['names'] = empty($log['names']) ? array() : unserialize($log['names']);
-                $log['ip_addresses'] = empty($log['ip_addresses']) ? array() : unserialize($log['ip_addresses']);
-                array_map('strip_tags', $log['names']);
-                echo json_encode(array('error' => 'None', 'ip' => '<li>'.implode('</li><li>', $log['ip_addresses']).'</li>',
-                                       'names' => '<li>'.implode('</li><li>', $log['names']).'</li>'));
-            }
-            else
-            {
-                echo json_encode(array('error' => 'Log not found'));
-            }
-
-            // Exit
-            exit;
+            $owned[] = $serv;
         }
 
-        // View
-        $this->view = new View('dashboard/logs');
-
-        // Logs
-        $this->view->logs = DB::select('*')->where('server_id', '=', $current_server->id)->from('players')->order_by('last_update', 'DESC')->execute();
+        // Owned
+        $this->view->owned = $owned;
     }
 }

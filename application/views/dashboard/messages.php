@@ -1,10 +1,5 @@
 <div id="leftblock">
-	<h2><?php echo __('Navigation') ?></h2>
-    <ul class="leftmenu">
-        <li><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Players list') ?></a></li>
-    	<li style="background-image: url(images/log.png)"><a href="<?php echo URL::site('dashboard/logs') ?>"><?php echo __('Player log') ?></a></li>
-		<li style="background-image: url(images/msg.png)" class="active"><a><?php echo __('Message rotation') ?></a></li>
-    </ul>
+	<?php echo $navigation		/* views/dashboard/navigation.php */ ?>
 </div>
 <div id="rightblock">
 	 <h2><?php echo __('Message rotation') ?></h2>

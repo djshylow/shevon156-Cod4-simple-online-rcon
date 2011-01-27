@@ -4,10 +4,15 @@ define('SERVER_BAN', 2);
 define('SERVER_TEMP_BAN', 4);
 define('SERVER_MESSAGE', 8);
 define('SERVER_USER_LOG', 16);
+define('SERVER_PLAYLIST', 32);
 abstract class Controller_Main extends Controller {
 
     protected $layout = 'layout/backend';
     protected $title = '';
+    
+    /**
+     * @var View
+     */
     protected $view = NULL;
 
     protected $db = NULL;
@@ -23,6 +28,14 @@ abstract class Controller_Main extends Controller {
         ))->execute();
     }
 
+	public function before()
+    {
+        $this->db = Database::instance();
+        $this->session = Session::instance();
+        $this->auth = Auth::instance();
+        $this->user = $this->auth->get_user();
+    }
+    
     public function after()
     {
         $layout = new View($this->layout);
@@ -33,14 +46,6 @@ abstract class Controller_Main extends Controller {
         $layout->tab = $this->tab;
 
         echo $layout->render();
-    }
-
-    public function before()
-    {
-        $this->db = Database::instance();
-        $this->session = Session::instance();
-        $this->auth = Auth::instance();
-        $this->user = $this->auth->get_user();
     }
 
     protected function do_force_login($role = 'login')

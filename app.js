@@ -1,6 +1,6 @@
 function rconRefresh()
 {
-    $.getJSON(BASE_URL+'index.php/dashboard/ajaxindex', function(data) {
+    $.getJSON(BASE_URL+'index.php/dashboard/ajaxindex/?'+Math.random(), function(data) {
         // Error?
         if(data.error == 'None')
         {

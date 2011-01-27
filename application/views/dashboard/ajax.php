@@ -1,21 +1,3 @@
-<?php $first = array(); $second = array(); $spectators = array(); ?>
-<?php
-    foreach($server_info['players'] as $player)
-    {
-        if($player['team'] == 1)
-        {
-            $first[] = $player;
-        }
-        elseif($player['team'] == 2)
-        {
-            $second[] = $player;
-        }
-        else
-        {
-            $spectators[] = $player;
-        }
-    }
-?>
 <h2><?php echo __('Server info') ?></h2>
 <div id="refreshcontainer">
 <?php if($server_info['error']): ?>
