@@ -1,7 +1,7 @@
 <h2><?php echo __('Navigation') ?></h2>
 <ul class="leftmenu">
 	<?php if($action == 'index'): ?>
-	<li class="active"><a><?php echo __('Players list') ?></a><img title="<?php echo __('Refresh player list') ?>" alt="Rfrsh" src="/images/refresh.png" onclick="rconRefresh()" /></li>
+	<li class="active"><a><?php echo __('Players list') ?></a><img title="<?php echo __('Refresh player list') ?>" alt="Rfrsh" src="images/refresh.png" onclick="rconRefresh()" /></li>
 	<?php else: ?>
 	<li><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Players list') ?></a></li>
 	<?php endif; ?>

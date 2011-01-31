@@ -25,7 +25,7 @@ class InstallerModuleUpgrade extends InstallerModule {
         // Set database
         $this->installer->setDb($db);
 
-        // Retrieve old permissions
+        /*// Retrieve old permissions
         $permissions = array();
         $query = mysql_query("SELECT * FROM ".$config['table_prefix']."servers_users");
 
@@ -44,13 +44,13 @@ class InstallerModuleUpgrade extends InstallerModule {
             }
 
             $permissions[] = array('server_id' => (int) $row['server_id'], 'user_id' => (int) $row['user_id'], 'permissions' => $permission);
-        }
+        }*/
 
 
         // Execute
         $this->installer->executeScheme('update.sql', $config['table_prefix']);
 
-        // Remove old permissions
+        /*// Remove old permissions
         mysql_query("DELETE FROM ".$config['table_prefix']."servers_users");
 
         // Create new
@@ -58,7 +58,7 @@ class InstallerModuleUpgrade extends InstallerModule {
         {
             mysql_query("INSERT INTO ".$config['table_prefix']."servers_users (user_id, server_id, permissions)
                          VALUES (".$perm['user_id'].", ".$perm['server_id'].", ".$perm['permissions'].")");
-        }
+        }*/
 
         // Next step
         $_SESSION['step'] = 2;

@@ -2,7 +2,7 @@
 	<?php echo $navigation		/* views/dashboard/navigation.php */ ?>
 </div>
 <div id="rightblock">
-	 <h2><?php echo __('Message rotation') ?></h2>
+	<h2><?php echo __('Message rotation') ?></h2>
 	<table cellspacing="0" cellpadding="0">
 		<thead>
 			<tr>

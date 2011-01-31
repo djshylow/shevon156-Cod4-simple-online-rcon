@@ -1,7 +1,13 @@
 <?php
 /**
  * Custom rotation plugin
- * @author Max
+ * To enable it add the following text into your cron/ini/config.ini:
+; ------------------------------
+; Custom rotation
+; ------------------------------
+[customRotation]
+enabled = 1;
+ * @author Maximusya
  *
  */
 class CustomRotation_Plugin implements Plugin {
@@ -48,28 +54,11 @@ class CustomRotation_Plugin implements Plugin {
         if($config['customRotation']['enabled'] == '1')
         {
         	 // Database
-            $this->db = $db;
+            $this->db = $db;           
+	            
+            // Event
+	        Event::register('onServerInfo', array($this, 'onServerInfo'));
             
-            if ( $config['customRotation']['install'] == '1' )
-            {
-            	$this->install();
-            	$this->addCustomPlaylist($server_id = 1, 
-            		$pls = array(
-			    		Rcon_Constants::pls_Hardcore_Capture_The_Flag,
-			    		Rcon_Constants::pls_Hardcore_Demolition,
-			    		Rcon_Constants::pls_Hardcore_Domination,
-			    		Rcon_Constants::pls_Hardcore_Headquarters,
-			    		Rcon_Constants::pls_Hardcore_Sabotage,
-			    		Rcon_Constants::pls_Hardcore_Team_Deathmatch,
-			    		Rcon_Constants::pls_Hardcore_Search_And_Destroy
-			    	)
-			    );
-            }
-            else
-            {
-	            // Event
-	            Event::register('onServerInfo', array($this, 'onServerInfo'));
-            }
         }
     }
     
@@ -157,7 +146,7 @@ class CustomRotation_Plugin implements Plugin {
     		$this->commands->cvar('playlist', $next_playlist_id);
     		$this->commands->message('^2Next gametype: ^1'.Rcon_Constants::$playlists[$next_playlist_id]);
 
-    		echo date('H:i:s'), ' NP: ', Rcon_Constants::$playlists[$running_playlist_id], ", ", Rcon_Constants::$maps[$this->status['mapname']],". ";
+    		echo date('H:i:s'), ' Server ', $this->server['id'], ' NP: ', Rcon_Constants::$playlists[$running_playlist_id], ", ", Rcon_Constants::$maps[$this->status['mapname']],". ";
     		echo 'Next: ', Rcon_Constants::$playlists[$next_playlist_id], "\n";
     	}
     	else 
@@ -221,13 +210,18 @@ class CustomRotation_Plugin implements Plugin {
     
     private function dewindowPlaylist($playlist_id)
     {
+    	// Dewindow in DB
     	$pls_dewindowed = $this->db->exec("UPDATE [prefix]custom_playlists SET in_window = 0 
 		    							WHERE server_id = :server_id AND server_playlist_id = :server_playlist_id AND playlist_id = :playlist_id
 		    							LIMIT 1",
 		    							array(':server_id' => $this->server['id'],
 		    								  ':server_playlist_id' => $this->server['server_playlist_id'],
 		    								  ':playlist_id' => $playlist_id));
-		$this->custom_playlist[$playlist_id]['in_window'] = 0;
+		// Dewindow in php object unless there is only 1 remaining in window so that next random playlist would not be the current
+		if ( $this->getCountPlaylistsInWindow() > 1 )
+		{
+			$this->custom_playlist[$playlist_id]['in_window'] = 0;
+		}
     }
     
     private function windowPlaylist($playlist_id)
@@ -270,6 +264,10 @@ class CustomRotation_Plugin implements Plugin {
     	return $custom_playlist;
     }
     
+    /**
+     * 
+     * @deprecated
+     */
     private function install()
     {
     	$my_scripts_folder = ROOT_PATH.'plugins/customRotation';
@@ -290,6 +288,10 @@ class CustomRotation_Plugin implements Plugin {
     	$this->db->executeScheme($my_scripts_folder . '/custom_playlists.sql');
     }
     
+    /**
+     * 
+     * @deprecated
+     */
     private function addCustomPlaylist($server_id, $pls)
     {	
     	$affected_rows = $this->db->exec("INSERT INTO [prefix]servers_playlists (server_id, server_playlist_name, is_active) VALUE (:server_id, :server_playlist_name, :is_active)",
@@ -311,6 +313,10 @@ class CustomRotation_Plugin implements Plugin {
     	$this->db->exec("INSERT INTO [prefix]custom_playlists (server_id, server_playlist_id, playlist_id) VALUES $values_str");
     }
     
+    /**
+     * 
+     * @deprecated
+     */
     private function install_from_php()
     {
     	/* 1. Install default playlists */

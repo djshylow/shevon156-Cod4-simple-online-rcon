@@ -2,7 +2,17 @@
 /**
  * Example plugin
  * Does nothing. Use as a starting point for your plugin
- * @author Max
+ * 
+ * To enable it add the following text into your cron/ini/config.ini:
+ * 
+; ------------------------------
+; Example plugin config
+; ------------------------------
+[example]
+enabled = 1;
+say_hello = 1;
+ * 
+ * @author Maximusya
  *
  */
 class Example_Plugin implements Plugin {

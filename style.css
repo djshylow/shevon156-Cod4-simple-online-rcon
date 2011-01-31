@@ -325,3 +325,16 @@ h3 {
 	font-weight: bold;
 	padding: 5px;
 }
+
+.gametypes .normal {
+	color: black;
+	font-weight: bold;
+}
+.gametypes .barebones {
+	color: teal;
+	font-weight: bold;
+}
+.gametypes .hardcore {
+	color: purple;
+	font-weight: bold;
+}

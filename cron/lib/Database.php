@@ -95,7 +95,7 @@ class Database {
         // Return
         return mysql_affected_rows($this->link);
     }
-
+    
     public function getLastInsertID()
     {
     	return mysql_insert_id($this->link);

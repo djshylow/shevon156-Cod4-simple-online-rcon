@@ -13,7 +13,7 @@ class Controller_Servers extends Controller_Main {
     {
         $this->title = __('Servers permissions');
 
-            $servers = array(); $users = array();
+        $servers = array(); $users = array();
 
         foreach(ORM::factory('server')->find_all() as $s)
         {

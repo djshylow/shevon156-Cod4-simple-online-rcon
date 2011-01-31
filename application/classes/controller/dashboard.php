@@ -1021,7 +1021,7 @@ class Controller_Dashboard extends Controller_Main {
             {
 	            DB::update('servers_playlists')->set(array('is_active'=>0))
 	            	->where('server_id','=',(int) $current_server['id'])
-	            	->where('server_playlist_id','<>',$server_playlist_id);
+	            	->where('server_playlist_id','<>',$server_playlist_id)->execute();
 			}
             
             $insert = DB::insert('custom_playlists', array('server_playlist_id', 'server_id', 'playlist_id'));
