@@ -96,6 +96,11 @@ class Database {
         return mysql_affected_rows($this->link);
     }
 
+    public function getLastInsertID()
+    {
+    	return mysql_insert_id($this->link);
+    }
+
     /**
      * Get all possible rows
      *
@@ -209,5 +214,86 @@ class Database {
 
         // Return result
         return $statement;
+    }
+    
+ /**
+     * Execute MySQL scheme
+     *
+     * @param object $file
+     * @return
+     */
+    public function executeScheme($file, $prefix = 'blackops_')
+    {
+        // Exists?
+        if(!is_readable($file))
+        {
+            throw new Exception('Scheme not found: '.$file);
+        }
+
+        // DB initialised
+        if(!is_resource($this->link))
+        {
+            throw new Exception('Database connection problem');
+        }
+
+        // Some vars
+        $queries = array();
+        $inString = FALSE;
+        $stringChar = '';
+        $query = '';
+
+        // Retrieve schema
+        $file = file_get_contents($file);
+        $count = strlen($file) - 1;
+
+        // Prefix = {dbp}
+        // Iterate
+        for($i = 0; $i <= $count ; $i++)
+        {
+            // Prefix
+            if($file[$i] == '{' AND $file[$i + 1] == 'd' AND $file[$i + 2] == 'b' AND $file[$i + 3] == 'p' AND $file[$i + 4] == '}')
+            {
+                // Add prefix
+                $query .= $this->prefix;
+
+                // Move cursor
+                $i = ($i + 4);
+
+                // Next iteration
+                continue;
+            }
+
+            // String
+            if($file[$i] == '"' OR $file[$i] == "'")
+            {
+                if(!$inString)
+                {
+                    $inString = TRUE;
+                    $stringChar = $file[$i];
+                }
+                elseif($file[$i] == $stringChar)
+                {
+                    $inString = FALSE;
+                }
+            }
+
+            // Seperator
+            if($file[$i] == ';' AND $query AND !$inString)
+            {
+                $queries[] = $query;
+
+                $query = '';
+            }
+            else
+            {
+                $query .= $file[$i];
+            }
+        }
+
+        // Execute each query
+        foreach($queries as $q)
+        {
+            $this->query($q);
+        }
     }
 }

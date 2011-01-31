@@ -36,6 +36,7 @@ require_once ROOT_PATH.'lib/Plugin.php';
 require_once ROOT_PATH.'lib/Rcon.php';
 require_once ROOT_PATH.'lib/rcon/Commands.php';
 require_once ROOT_PATH.'lib/rcon/Statusparser.php';
+require_once ROOT_PATH.'lib/rcon/Constants.php';
 
 // Config
 $config = parse_ini_file(ROOT_PATH.'ini/config.ini', TRUE);

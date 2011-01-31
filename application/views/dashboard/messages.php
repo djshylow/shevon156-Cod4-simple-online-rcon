@@ -17,7 +17,7 @@
 				<td><?php echo strip_tags($msg['username']) ?></td>
 				<td><?php echo strip_tags($msg['message']) ?></td>
 				<td>
-                <a href="<?php echo URL::site('dashboard/msgrotation/'.$msg['id']) ?>" class="button" style="background-image: url(images/delete.png)">Delete</a>
+                <a href="<?php echo URL::site('dashboard/msgrotation/'.$msg['id']) ?>" class="button" style="background-image: url(images/delete.png)"><?php echo __('Delete') ?></a>
 				</td>
 			</tr>
 			<?php endforeach; ?>

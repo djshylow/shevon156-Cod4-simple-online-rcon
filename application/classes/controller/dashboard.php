@@ -919,26 +919,17 @@ class Controller_Dashboard extends Controller_Main {
         $this->view->logs = DB::select('*')->where('server_id', '=', $current_server['id'])->from('players')->order_by('last_update', 'DESC')->execute();
     }
     
-    public function action_playlists()
+    public function action_playlists($playlist_id_to_switch = NULL, $active = NULL)
     {
     	$this->action = 'playlists';
     	
-    // Only logged in users
+		// Only logged in users
         $this->do_force_login();
 
         // Title
-        $this->title = __('Message rotation');
+        $this->title = __('Playlists');
 
-        // Get owned servers
-        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
-
-        // No servers?
-        if(count($owned) <= 0)
-        {
-            $this->view = new View('dashboard/noservers');
-            return;
-        }
-
+		// Get owned servers
      	$owned = $this->get_owned_servers();
         $this->owned = $owned;
         
@@ -960,8 +951,316 @@ class Controller_Dashboard extends Controller_Main {
         {
             throw new Kohana_Exception('No permissions');
         }
+        
+    	// Fill all playlists
+		$all_playlists_res = DB::select()->from('playlists')->where('gametype_codename', 'IN', array('tdm','dm','ctf','sd','koth','dom','sab','dem'))
+								/*->order_by('gamemode_codename')->order_by('size')*/->execute();
+		
+		if ( count($all_playlists_res) <=0 )
+		{
+			throw new Kohana_Exception('List of playlists not found');
+		}
+		
+		$all_playlists_ids = array_keys($all_playlists_res->as_array('id'));
+		
+		// Switch playlist activity
+		if ( ctype_digit($playlist_id_to_switch) && ($active == 0 || $active == 1) )
+		{
+			if ( !in_array((int) $playlist_id_to_switch, $all_playlists_ids) )
+			{
+				$this->notice('Invalid playlist specified');
+				$this->request->redirect('dashboard/playlists');
+			}
+			
+			DB::update('servers_playlists')->set(array('is_active'=>(int)$active))
+	            	->where('server_id','=',(int) $current_server['id'])
+	            	->where('server_playlist_id','=',$playlist_id_to_switch)->execute();
+	        if ( $active )
+	        {
+	        	DB::update('servers_playlists')->set(array('is_active'=>0))
+	            	->where('server_id','=',(int) $current_server['id'])
+	            	->where('server_playlist_id','<>',$playlist_id_to_switch)->execute();
+	        }
+	        
+	        $this->notice('Custom playlist '.($active?'activated':'desactivated'));
+			$this->request->redirect('dashboard/playlists');
+		}
+        
+		// Add new custom playlist
+        if ( isset($_POST['playlists_ids']) && is_array($_POST['playlists_ids']) && !empty($_POST['playlists_ids']) )
+        {
+        	$playlist_name = $_POST['playlist_name'];
+        	$make_active = isset($_POST['make_active']);
+        	
+        	$playlists_ids = array_unique($_POST['playlists_ids']);
+			
+        	foreach ($playlists_ids as $playlist_id)
+        	{
+        		if ( !in_array($playlist_id, $all_playlists_ids) )
+        		{
+        			$this->notice('Invalid default playlist specified');
+					$this->request->redirect('dashboard/playlists');
+        		}
+        	}
+        	
+       		if(count(DB::select()->from('servers_playlists')->where('server_id', '=', (int) $current_server['id'])
+       														->where('server_playlist_name', '=', Security::xss_clean($playlist_name))
+       														->execute()))
+            {
+                $this->notice('This playlist name already exists');
+                $this->request->redirect('dashboard/playlists');
+            }
+            
+            $res = DB::insert('servers_playlists', array('server_id', 'server_playlist_name', 'is_active'))->values(array(
+            	(int) $current_server['id'], Security::xss_clean($playlist_name), $make_active
+            ))->execute();
+            
+            $server_playlist_id = $res[0];
+            
+            if ( $make_active )
+            {
+	            DB::update('servers_playlists')->set(array('is_active'=>0))
+	            	->where('server_id','=',(int) $current_server['id'])
+	            	->where('server_playlist_id','<>',$server_playlist_id);
+			}
+            
+            $insert = DB::insert('custom_playlists', array('server_playlist_id', 'server_id', 'playlist_id'));
+            
+        	foreach ( $playlists_ids as $playlist_id )
+            {
+            	$insert->values(array($server_playlist_id, $current_server['id'], $playlist_id));
+            }
+            
+            $insert->execute();
+        	
+        	$this->notice('Custom playlist added');
+			$this->request->redirect('dashboard/playlists');
+        }
+        
+        // Fill custom playlists
+        $playlists = array();
+        
+        $custom_playlists = DB::select('server_playlist_id', 'server_playlist_name', 'is_active')->from('servers_playlists')
+        						->where('server_id', '=', $current_server['id'])
+                                ->execute();
+        foreach ($custom_playlists as $custom_playlist)
+        {
+        	$playlists_in_custom_playlist = DB::select('custom_playlists.playlist_id', 'playlists.name', 'playlists.gametype_codename', 'playlists.gamemode_codename', 'playlists.size')
+				        					->from('custom_playlists')->where('server_id', '=', $current_server['id'])->where('server_playlist_id', '=', $custom_playlist['server_playlist_id'])
+				        					->join('playlists')->on('custom_playlists.playlist_id', '=', 'playlists.id')
+				        					->execute();
+			
+        	$gametypes = array();
+        	foreach ($playlists_in_custom_playlist as $playlist)
+        	{
+        		$gametypes[] = array(
+        			'name' => $playlist['name'],
+        			'abbrev' => Rcon_Constants::$gametypes_abbrev[$playlist['gametype_codename']],
+        			'mode' => $playlist['gamemode_codename'],
+        		);
+        	}
+        						
+        	$playlists[] = array(
+        		'id' => $custom_playlist['server_playlist_id'],
+        		'name' => $custom_playlist['server_playlist_name'],
+        		'is_active' => $custom_playlist['is_active'],
+        		'gametypes' => $gametypes,
+        	);
+        }
+        
+		$grouped_playlists = array(
+			'normal'=>array(),
+			'hardcore'=>array(),
+			'barebones'=>array()
+		);
+		foreach ($all_playlists_res as $playlist)
+		{
+			$grouped_playlists[ $playlist['gamemode_codename'] ] += array( $playlist['id'] => $playlist['name'] );
+		}
     	
 		$this->view = new View('dashboard/playlists');
+		
+		$this->view->playlists = $playlists;
+		$this->view->grouped_playlists = $grouped_playlists;
+    }
+    
+    public function action_playlist_edit($server_playlist_id)
+    {
+    	$this->action = 'playlists';
+    	
+    	if ( !ctype_digit($server_playlist_id) )
+        {
+            throw new Kohana_Exception('Invalid request');
+        }
+        
+        // Only logged in users
+        $this->do_force_login();
+        
+    	// get owned, get current, check permissions
+    	
+	    // Get owned servers
+     	$owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
+        {
+        	$this->view = new View('dashboard/noservers');
+            return;
+        }
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
+        {
+            throw new Kohana_Exception('Invalid server');
+        }
+        $this->current_server = $current_server;
+
+        // Check permissions
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_PLAYLIST))
+        {
+            throw new Kohana_Exception('No permissions');
+        }
+        
+        $playlist_info = DB::select('server_playlist_name')->from('servers_playlists')->where('server_playlist_id', '=', (int) $server_playlist_id)
+       														->where('server_id', '=', (int) $current_server['id'])
+       														->execute();
+        
+    	if(!count($playlist_info))
+		{
+			$this->notice('Invalid playlist');
+			$this->request->redirect('dashboard/playlists');
+		}
+		$playlist_info = $playlist_info->as_array();
+        $playlist_info = current($playlist_info);
+        
+    	// Fill all playlists
+		$all_playlists_res = DB::select()->from('playlists')->where('gametype_codename', 'IN', array('tdm','dm','ctf','sd','koth','dom','sab','dem'))
+								/*->order_by('gamemode_codename')->order_by('size')*/->execute();
+		
+		if ( count($all_playlists_res) <=0 )
+		{
+			throw new Kohana_Exception('List of playlists not found');
+		}
+		
+    	$grouped_playlists = array(
+			'normal'=>array(),
+			'hardcore'=>array(),
+			'barebones'=>array()
+		);
+		foreach ($all_playlists_res as $value)
+		{
+			$grouped_playlists[ $value['gamemode_codename'] ] += array( $value['id'] => $value['name'] );
+		}
+		
+		// Process post
+		if ( isset($_POST['playlists_ids']) && is_array($_POST['playlists_ids']) && !empty($_POST['playlists_ids']) )
+        {
+        	$playlist_name = Security::xss_clean($_POST['playlist_name']);
+        	
+        	$playlists_ids = array_unique($_POST['playlists_ids']);
+			$all_playlists_ids = array_keys($all_playlists_res->as_array('id'));
+        	
+        	foreach ($playlists_ids as $playlist_id)
+        	{
+        		if ( !in_array($playlist_id, $all_playlists_ids) )
+        		{
+        			$this->notice('Invalid default playlist specified');
+					$this->request->redirect('dashboard/playlists');
+        		}
+        	}
+        	
+       		if(count(DB::select()->from('servers_playlists')->where('server_id', '=', (int) $current_server['id'])
+       														->where('server_playlist_name', '=', $playlist_name)
+       														->where('server_playlist_id', '<>', (int) $server_playlist_id)
+       														->execute()))
+            {
+                $this->notice('This playlist name already exists');
+                $this->request->redirect('dashboard/playlists');
+            }
+            
+            if ( $playlist_name <> $playlist_info['server_playlist_name'])
+            {
+            	DB::update('servers_playlists')->set(array('server_playlist_name' => $playlist_name))
+            									->where('server_playlist_id', '=', (int) $server_playlist_id)
+        										->where('server_id', '=', (int) $current_server['id'])
+        		->execute();
+            }
+            
+            // Delete old, insert new
+            $res = DB::delete('custom_playlists')->where('server_playlist_id', '=', (int) $server_playlist_id)
+        										->where('server_id', '=', (int) $current_server['id'])
+        	->execute();
+            
+			$insert = DB::insert('custom_playlists', array('server_playlist_id', 'server_id', 'playlist_id'));
+            
+        	foreach ( $playlists_ids as $playlist_id )
+            {
+            	$insert->values(array($server_playlist_id, $current_server['id'], $playlist_id));
+            }
+            
+            $insert->execute();
+        	
+        	$this->notice('Playlist saved');
+			$this->request->redirect('dashboard/playlists');
+        }
+		
+		$this->title = 'Playlist edit';
+		
+		$playlists_in_custom_playlist = DB::select('custom_playlists.playlist_id', 'playlists.name')
+				        					->from('custom_playlists')->where('server_id', '=', (int) $current_server['id'])->where('server_playlist_id', '=', (int) $server_playlist_id)
+				        					->join('playlists')->on('custom_playlists.playlist_id', '=', 'playlists.id')
+				        					->execute();
+		
+		$playlist['id'] = $server_playlist_id;
+		$playlist['name'] = $playlist_info['server_playlist_name'];
+		$playlist['playlists'] = $playlists_in_custom_playlist->as_array();
+		
+		$this->view = new View('dashboard/playlist_edit');
+		$this->view->playlist = $playlist;
+		$this->view->grouped_playlists = $grouped_playlists;
+    }
+    
+    public function action_playlist_delete($server_playlist_id)
+    {
+    	if ( !ctype_digit($server_playlist_id) )
+        {
+            throw new Kohana_Exception('Invalid request');
+        }
+        
+        // Only logged in users
+        $this->do_force_login();
+        
+    	// get owned, get current, check permissions
+    	
+	    // Get owned servers
+     	$owned = $this->get_owned_servers();
+        $this->owned = $owned;
+        
+        if ( empty($owned) )
+        {
+        	$this->view = new View('dashboard/noservers');
+            return;
+        }
+        
+		$current_server = $this->get_current_server();
+		if(!$current_server)
+        {
+            throw new Kohana_Exception('Invalid server');
+        }
+        $this->current_server = $current_server;
+
+        // Check permissions
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_PLAYLIST))
+        {
+            throw new Kohana_Exception('No permissions');
+        }
+        
+        $res = DB::delete('servers_playlists')->where('server_playlist_id', '=', (int) $server_playlist_id)
+        										->where('server_id', '=', (int) $current_server['id'])
+        	->execute();
+        
+        $this->notice('Custom playlist deleted');
+		$this->request->redirect('dashboard/playlists');
     }
     
     protected function get_owned_servers()
@@ -1030,89 +1329,5 @@ class Controller_Dashboard extends Controller_Main {
         $current_server += $server[0];
         
         return $current_server;
-    }
-    
-    private function checkPermission($permissions, $permission_to_check)
-    {
-    	if( !($permissions & $permission_to_check) )
-        {
-        	return false;
-        }
-        else
-        {
-        	return true;
-        }
-    }
-    
-    private function do_get_owned_servers($permission_to_check = NULL)
-    {
-    	$is_ajax = Request::$is_ajax;
-    	
-    	// Get owned servers
-        $owned = DB::select()->from('servers_users')->where('user_id', '=', $this->user->id)->execute();
-        
-        // No servers?
-        if(count($owned) <= 0)
-        {
-            $this->view = new View('dashboard/noservers');
-            return;
-        }
-        
-    	// Default server
-        $current_server = 0;
-
-        // Get ID from session
-        if(is_int($this->session->get('current_server')) OR ctype_digit($this->session->get('current_server')))
-        {
-            foreach($owned as $o)
-            {
-                if($o['server_id'] == (int) $this->session->get('current_server'))
-                {
-                    $current_server = $o;
-                    break;
-                }
-            }
-        }
-
-        // Get default
-        if(!$current_server)
-        {
-            foreach($owned as $o)
-            {
-                $current_server = $o;
-                break;
-            }
-        }
-
-        // Fetch server data
-        $permissions = (int) $current_server['permissions'];
-        $current_server = ORM::factory('server', $current_server['server_id']);
-
-        // Found?
-        if(!$current_server->loaded())
-        {
-            throw new Kohana_Exception('Invalid server');
-        }
-        
-        // Get available servers
-        $servers = array();
-
-        // Iterate
-        foreach($owned as $o)
-        {
-            $servers[] = $o['server_id'];
-        }
-
-        // Owned
-        $owned = array();
-
-        // Get server names
-        foreach(DB::select('id', 'name')->from('servers')->where('id', 'IN', $servers)->execute() as $serv)
-        {
-            $owned[] = $serv;
-        }
-
-        // Owned
-        $this->view->owned = $owned;
     }
 }

@@ -66,6 +66,25 @@ class Rcon_Commands {
             $this->console->command($name.' '.(is_int($value) ? $value : '"'.$value.'"'));
         }
     }
+    
+    public function get_playlist()
+    {
+    	$response = $this->console->command('playlist');
+    	/*
+    	 * playlist
+			"playlist" is: "30" default: "1"
+			  Domain is any integer from 0 to 64
+    	 */
+    	if ( preg_match('%"playlist" is: "(\d+)"%', $response, $match) )
+    	{
+    		$playlist = (int) $match[1];
+    		return $playlist;
+    	}
+    	else 
+    	{
+    		return false;
+    	}
+    }
 
     /**
      * Get basic server info (map and player list)
@@ -74,20 +93,33 @@ class Rcon_Commands {
      */
     public function get_server_info()
     {
-        // Send command
-        $response = $this->console->command('teamstatus');
+        $teamstatus = $this->get_teamstatus();
+        $server_info = $this->get_real_server_info();
+        $info = array_merge($teamstatus, $server_info);
+        
+        return $info;
+    }
+    
+	public function get_teamstatus()
+    {
+    	// Send command
+        $raw_response = $this->console->command('teamstatus');
+        if ( empty($raw_response) )
+        {
+        	$raw_response = $this->console->command('teamstatus');
+        }
 
         // Break lines
-        $response = explode("\n", $response);
+        $response = explode("\x0a", $raw_response);
 
         // Valid response?
         if(count($response) <= 1)
         {
-            throw new Exception('Cannot retrieve server info');
+            throw new Exception('Cannot retrieve teamstatus');
         }
 
-        // Array containing server info
-        $server_info = array(
+        // Array containing teamstatus
+        $teamstatus = array(
             'map' => substr($response[0], 5),
             'players' => array(
 
@@ -114,7 +146,44 @@ class Rcon_Commands {
             $line = $parser->parse($line);
 
             // Set player info
-            $server_info['players'][$line['id']] = $line;
+            $teamstatus['players'][$line['id']] = $line;
+        }
+
+        // Return
+        return $teamstatus;
+    }
+    
+	public function get_real_server_info()
+    {
+    	// Send command
+        $raw_response = $this->console->command('serverinfo');
+    	if ( empty($raw_response) )
+        {
+        	$raw_response = $this->console->command('serverinfo');
+        }
+
+        // Break lines
+        $response = explode("\x0a", $raw_response);
+
+        // Valid response?
+        if(count($response) <= 1)
+        {
+            throw new Exception('Cannot retrieve server info');
+        }
+
+        // Remove header
+        unset($response[0]);
+
+        // Iterate players
+        foreach($response as $line)
+        {
+        	$var_name = strtok($line, ' ');
+        	$var_value = trim(substr($line, strlen($var_name)));
+            
+        	if ( $var_name !== false )
+        	{
+        		$server_info[$var_name] = is_numeric($var_value) ? intval($var_value) : $var_value;
+        	}
         }
 
         // Return

@@ -66,7 +66,7 @@ class Rcon {
         }
 
         // Send command
-        fwrite($this->socket, "\xff\xff\xff\xff\x00".$this->password.' '.$command."\x00");
+        fwrite($this->socket, "\xff\xff\xff\xff\x00".$this->password."\x20".$command."\x00");
 
         // Wait for response?
         if($return_response)
