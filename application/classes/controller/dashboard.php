@@ -780,7 +780,7 @@ class Controller_Dashboard extends Controller_Main {
         $this->current_server = $current_server;
 
         // Check permissions
-        if(!( ( (int)$current_server['permissions'] ) & SERVER_MESSAGE))
+        if(!( ( (int)$current_server['permissions'] ) & SERVER_MESSAGE_ROTATION ))
         {
             throw new Kohana_Exception('No permissions');
         }

@@ -64,6 +64,11 @@ class Controller_Servers extends Controller_Main {
                 $permissions |= SERVER_MESSAGE;
             }
 
+        	if(isset($_POST['can_message_rotation']) AND $_POST['can_message_rotation'] == '1')
+            {
+                $permissions |= SERVER_MESSAGE_ROTATION;
+            }
+
             if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
             {
                 $permissions |= SERVER_USER_LOG;
@@ -97,6 +102,86 @@ class Controller_Servers extends Controller_Main {
         $this->view->users = $users;
     }
 
+    public function action_permissions_edit($user_id, $server_id)
+    {
+    	// Validate ID
+        if(!ctype_digit($user_id) OR !ctype_digit($server_id))
+        {
+            throw new Kohana_Exception('Invalid parameter');
+        }
+
+        $user_id = (int) $user_id; $server_id = (int) $server_id;
+        
+		$server = ORM::factory('server', $server_id);
+		$user = ORM::factory('user', $user_id);
+
+		if(!$server->loaded() OR !$user->loaded())
+		{
+			throw new Kohana_Exception('Invalid parameter');
+		}
+		
+		// Process POST
+		if ( isset($_POST['submit']) )
+		{
+			$permissions = 0;
+			
+			if(isset($_POST['can_kick']) AND $_POST['can_kick'] == '1')
+            {
+                $permissions |= SERVER_KICK;
+            }
+
+            if(isset($_POST['can_ban']) AND $_POST['can_ban'] == '1')
+            {
+                $permissions |= SERVER_BAN;
+            }
+
+            if(isset($_POST['can_temp_ban']) AND $_POST['can_temp_ban'] == '1')
+            {
+                $permissions |= SERVER_TEMP_BAN;
+            }
+
+            if(isset($_POST['can_messages']) AND $_POST['can_messages'] == '1')
+            {
+                $permissions |= SERVER_MESSAGE;
+            }
+            
+			if(isset($_POST['can_message_rotation']) AND $_POST['can_message_rotation'] == '1')
+            {
+                $permissions |= SERVER_MESSAGE_ROTATION;
+            }
+
+            if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
+            {
+                $permissions |= SERVER_USER_LOG;
+            }
+            
+        	if(isset($_POST['can_playlists']) AND $_POST['can_playlists'] == '1')
+            {
+                $permissions |= SERVER_PLAYLIST;
+            }
+            
+            DB::update('servers_users')->set(array('permissions'=>$permissions))
+            	->where('user_id', '=', $user_id)
+            	->where('server_id', '=', $server_id)
+            ->execute();
+            
+			$this->log_action(__('Edited :user permissions for server: :server', array(':user' => $user->username, ':server' => $server->name)));
+			
+			$this->notice('Permissions saved');
+			$this->request->redirect('servers/permissions');
+		}
+		
+		$permissions = DB::select('permissions')->from('servers_users')->where('user_id', '=', $user_id)->where('server_id', '=', $server_id)->execute();
+		$permissions = $permissions->as_array();
+		$permissions = (int) $permissions[0]['permissions'];
+		
+		$this->view = new View('servers/permissions_edit');
+
+        $this->view->server = $server;
+        $this->view->user = $user;
+        $this->view->permissions = $permissions;
+    }
+
     public function action_permissions_delete($id, $id2)
     {
             // Validate ID
@@ -118,8 +203,6 @@ class Controller_Servers extends Controller_Main {
         $this->log_action(__('Removed :user permissions for server: :server', array(':user' => $user->username, ':server' => $server->name)));
 
         DB::delete('servers_users')->where('user_id', '=', $id)->where('server_id', '=', $id2)->execute();
-
-
 
             $this->notice('Permissions removed');
             $this->request->redirect('servers/permissions');

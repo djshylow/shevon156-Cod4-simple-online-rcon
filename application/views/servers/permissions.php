@@ -13,7 +13,7 @@
 		<tr>
 			<td><?php echo __('User') ?></td>
 			<td><?php echo __('Server') ?></td>
-			<td><?php echo __('Can kick/ban/temp ban/message/user log/playlists') ?></td>
+			<td><?php echo __('Can kick/ban/temp ban/message/message rotation/user log/playlists') ?></td>
 			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
@@ -28,10 +28,12 @@
 			    <?php echo ($permissions & SERVER_BAN) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_TEMP_BAN) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_MESSAGE) ? 'Yes' : 'No' ?>/
+			    <?php echo ($permissions & SERVER_MESSAGE_ROTATION) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_USER_LOG) ? 'Yes' : 'No' ?>/
 			    <?php echo ($permissions & SERVER_PLAYLIST) ? 'Yes' : 'No' ?>
 			</td>
 			<td>
+				<a href="<?php echo URL::site('servers/permissions_edit/'.$s['user_id'].'/'.$s['server_id']) ?>" class="button" style="background-image: url(images/edit.png)"><?php echo __('Edit') ?></a>
                 <a href="<?php echo URL::site('servers/permissions_delete/'.$s['user_id'].'/'.$s['server_id']) ?>" class="button" style="background-image: url(images/delete.png)"><?php echo __('Delete') ?></a>
 			</td>
 		</tr>
@@ -63,8 +65,12 @@
 				<input type="checkbox" name="can_temp_ban" style="width: auto" value="1" />
 			</div>
 			<div>
-				<label><?php echo __('Can send messages') ?>:<br /><small>+<?php echo __('Manage message rotations') ?></small></label>
+				<label><?php echo __('Can send messages') ?>:</label>
 				<input type="checkbox" name="can_messages" style="width: auto" value="1" />
+			</div>
+			<div>
+				<label><?php echo __('Can manage message rotations') ?>:</label>
+				<input type="checkbox" name="can_message_rotation" style="width: auto" value="1" />
 			</div>
 			<div>
 				<label><?php echo __('Can view user logs') ?>:</label>

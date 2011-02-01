@@ -1,0 +1,36 @@
+By yakimets@gmail.com (maximusya)
+
+Upgrade instructions:
+
+Before you start upgrading:
+this package requires PHP WebRcon 0.2 alpha (with with #1 and #2 patches) installed;
+if you have installed Custom Rotation plugin manually, the upgrade will delete your custom playlist - you will have to create it via web interface after the upgrade;
+
+Upgrade instructions:
+- you may want to disable all the cron plugins for the time of upgrade (edit your cron/ini/config.ini and set all enabled to 0)
+- unpack locally or remotely in a temporary folder;
+- from this temporary folder remove files/folders:
+	application/config/
+	cron/ini/
+- copy files from temp directory over you installation, overwriting all existing;
+- point you browser to http://yourserver.com/install/upgrade.php;
+- follow instructions and press Next;
+
+To start using Custom playlists you will have to add the corresponding permission to your users:
+- point your browser to http://yourserver.com/index.php/servers/permissions;
+- press Delete and then assign new permissions for the appropriate users (note new permission Can set playlists)
+
+Then you can return to dashboard, choose current server and then go to Playlists to create your custom playlist.
+
+To actually activate Custom Rotation cron plugin add the following text into your cron/ini/config.ini:
+; ------------------------------
+; Custom rotation
+; ------------------------------
+[customRotation]
+enabled = 1;
+
+Notes:
+1. Now you can combine your custom playlist only from atomic default playlists, i.e you cannot add Team Tactical playlist - but you can imitate it by adding all the playlists that are in it manually.
+2. Custom playlists have status Active: you can have only one (or none) active custom playlist per server. Turn them On/Off on the Playlists page.
+3. You can use this Custom playlist even with one gametype included: it will simply "rotate" the same gametype over and over.
+4. Don't forget to Turn Off the active Custom playlist if you intend to start using other RCONs for playlist management, otherwise next minute Custom Rotation plugin would take over rotation.

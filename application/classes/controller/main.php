@@ -5,6 +5,7 @@ define('SERVER_TEMP_BAN', 4);
 define('SERVER_MESSAGE', 8);
 define('SERVER_USER_LOG', 16);
 define('SERVER_PLAYLIST', 32);
+define('SERVER_MESSAGE_ROTATION', 64);
 abstract class Controller_Main extends Controller {
 
     protected $layout = 'layout/backend';
