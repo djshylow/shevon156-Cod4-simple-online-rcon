@@ -158,6 +158,7 @@ table .ico {
 }
 
 table thead td, table thead th {
+	text-align: left;
     height: 32px;
     background-color: #EFEFEF;
     color: #000;
