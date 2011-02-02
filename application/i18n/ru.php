@@ -79,5 +79,19 @@ return array
 'Manage message rotations' => 'Возможность настройки ротации сообщений',
 'Can view user logs' => 'Возможность просмотра логов пользователей',
 'Add/Apply' => 'Добавить/Применить',
-'Edit server' => 'Настройка сервера'
+'Edit server' => 'Настройка сервера',
+'Can set playlists' => 'Возможность управления плейлистом',
+'Playlists' => 'Плейлисты',
+'Playlist name' => 'Название плейлиста',
+'Gametypes' => 'Режимы игры',
+'Active' => 'Активен',
+'Create new playlist' => 'Создать новый плейлист',
+'Make active' => 'Сделать активным',
+'Turn OFF' => 'Выключить',
+'Turn ON' => 'Включить',
+'Create' => 'Создать',
+'Add one more...' => 'Добавить еще...',
+'Playlist edit' => 'Настройка плейлиста',
+'Save' => 'Сохранить',
+
 );

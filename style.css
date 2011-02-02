@@ -157,7 +157,7 @@ table .ico {
     width: 16px;
 }
 
-table thead td {
+table thead td, table thead th {
     height: 32px;
     background-color: #EFEFEF;
     color: #000;

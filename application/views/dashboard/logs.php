@@ -12,14 +12,40 @@
 </div>
 <div id="rightblock">
 	<h2><?php echo __('Player log') ?></h2>
+	<script type="text/javascript" src="<?php echo URL::base() ?>jquery.uitablefilter.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			var $t = $('table');
+			
+			$t.find('th').each(function(index){
+				var column = $(this).text();
+				if ( index == 0 || index == 2 || index == 3 ) {
+					var $search = $('<img src="images/magnifier-small.png" />')
+						.css({'vertical-align':'middle', 'cursor':'pointer'})
+						.click(function() {	
+							$filter.toggle(); 
+						});
+					var $filter = $('<input type="text" size="10"/>')
+						.css({'display':'none', 'font-size':'10px'})
+						.keyup(function() {
+							$.uiTableFilter( $t, this.value, column );
+							$('#nvisible').text($t.find('tbody > tr:visible').size());
+						});
+					$(this).append($search).append('<br>').append($filter);
+				}
+			});
+
+			$t.before('<div><i>Showing <b id="nvisible">'+$t.find('tbody > tr:visible').size()+'</b> rows of <b id="ntotal">'+$t.find('tbody > tr:visible').size()+'</b> total</i></div>');
+		});  
+	</script>
 	<table cellspacing="0" cellpadding="0">
 		<thead>
 			<tr>
-				<td><?php echo __('GUID') ?></td>
-				<td><?php echo __('Last scan') ?></td>
-				<td><?php echo __('Last name') ?></td>
-				<td><?php echo __('Last IP') ?></td>
-				<td><?php echo __('Details') ?></td>
+				<th><?php echo __('GUID') ?></th>
+				<th><?php echo __('Last scan') ?></th>
+				<th><?php echo __('Last name') ?></th>
+				<th><?php echo __('Last IP') ?></th>
+				<th><?php echo __('Details') ?></th>
 			</tr>
 		</thead>
 		<tbody>

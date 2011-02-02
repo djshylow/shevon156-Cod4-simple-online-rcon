@@ -19,7 +19,7 @@
         			<?php echo Form::select('playlists_ids[]', $grouped_playlists)?>
         		</div>
         		<?php endif;?>
-        		<div id="add1more"><a href="javascript:addAnotherPlaylist()">Add one more...</a></div>
+        		<div id="add1more"><a href="javascript:addAnotherPlaylist()"><?php echo __('Add one more...') ?></a></div>
         		<div>
         			<label><?php echo __('Playlist name') ?>:</label>
         			<input type="text" name="playlist_name" value="<?php echo HTML::chars($playlist['name']) ?>" />
