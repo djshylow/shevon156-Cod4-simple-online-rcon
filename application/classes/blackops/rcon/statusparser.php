@@ -1,12 +1,31 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
 /**
- * Teamstatus command parser
+ * Blackops teamstatus parser
+ *
+ * Copyright (c) 2010, EpicLegion
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
  * @author		EpicLegion
  * @package		rcon
  * @subpackage	lib
+ * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
-class Rcon_Statusparser {
+class Blackops_Rcon_Statusparser {
 
     /**
      * Max string pointer (length - 1)
@@ -81,7 +100,7 @@ class Rcon_Statusparser {
         $this->clear_whitechars();
 
         // Read ping (yes string, sometimes it's CNCT)
-        $player['ping'] = $this->read_string();
+        $player['ping'] = UTF8::clean($this->read_string());
 
         // Clear whitechars
         $this->clear_whitechars();
@@ -93,7 +112,7 @@ class Rcon_Statusparser {
         $this->clear_whitechars();
 
         // Most issues is caused by this...
-        $player['name'] = $this->read_name();
+        $player['name'] = UTF8::clean($this->read_name());
 
         // Clear whitechars
         $this->clear_whitechars();
@@ -111,7 +130,7 @@ class Rcon_Statusparser {
         $this->clear_whitechars();
 
         // Read address (with port?)
-        $player['address'] = $this->read_string();
+        $player['address'] = UTF8::clean($this->read_string());
 
         // Clear whitechars
         $this->clear_whitechars();

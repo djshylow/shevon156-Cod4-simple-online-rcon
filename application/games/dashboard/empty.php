@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Message model
+ * Empty dashboard (no servers available0
  *
  * Copyright (c) 2010, EpicLegion
  * All rights reserved.
@@ -22,21 +22,34 @@
  *
  * @author		EpicLegion
  * @package		rcon
- * @subpackage	model
+ * @subpackage	controller
  * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
-class Model_Message extends ORM {
+class Controller_Dashboard extends Controller_Dashboard_Core {
 
     /**
-     * Get server rotation messages
+     * Sets action to index
      *
-     * @param	int	$server
+     * @see blackops/application/classes/controller/Controller_Main::before()
      */
-    public static function get_messages($server)
+    public function before()
     {
-        return DB::select('messages.id', 'messages.message', 'users.username')
-                 ->where('server_id', '=', (int) $server)
-                 ->join('users', 'LEFT')->on('users.id', '=', 'messages.user_id')
-                 ->from('messages')->order_by('messages.id', 'DESC')->execute();
+        // Parent
+        parent::before();
+
+        // Always index
+        $this->request->action = 'index';
+    }
+
+    /**
+     * Index action
+     */
+    public function action_index()
+    {
+        // Title
+        $this->title = __('No servers');
+
+        // View
+        $this->view = new View('noservers');
     }
 }

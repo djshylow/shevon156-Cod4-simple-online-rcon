@@ -1,241 +1,37 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
+
+/**
+ * User controller
+ *
+ * Copyright (c) 2010, EpicLegion
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @author		EpicLegion, Maximusya
+ * @package		rcon
+ * @subpackage	controller
+ * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
+ */
 class Controller_Servers extends Controller_Main {
 
-    public function before()
-    {
-        parent::before();
-        $this->tab = 'servers';
-
-        $this->do_force_login('servers');
-    }
-
-    public function action_permissions()
-    {
-        $this->title = __('Servers permissions');
-
-        $servers = array(); $users = array();
-
-        foreach(ORM::factory('server')->find_all() as $s)
-        {
-            $servers[$s->id] = $s->name;
-        }
-
-        foreach(ORM::factory('user')->find_all() as $s)
-        {
-            $users[$s->id] = $s->username;
-        }
-
-        if(isset($_POST['user_id']) AND isset($_POST['server_id']) AND ctype_digit($_POST['user_id']) AND ctype_digit($_POST['server_id']))
-        {
-            $server_id = (int) $_POST['server_id'];
-            $user_id = (int) $_POST['user_id'];
-
-            if(!isset($servers[$server_id]) OR !isset($users[$user_id]))
-            {
-                $this->notice('Invalid user/server');
-                $this->request->redirect('servers/permissions');
-            }
-
-            if(count(DB::select('user_id')->from('servers_users')->where('user_id', '=', $user_id)->where('server_id', '=', $server_id)->execute()))
-            {
-                $this->notice('Already exists');
-                $this->request->redirect('servers/permissions');
-            }
-
-            $permissions = 0;
-
-            if(isset($_POST['can_kick']) AND $_POST['can_kick'] == '1')
-            {
-                $permissions |= SERVER_KICK;
-            }
-
-            if(isset($_POST['can_ban']) AND $_POST['can_ban'] == '1')
-            {
-                $permissions |= SERVER_BAN;
-            }
-
-            if(isset($_POST['can_temp_ban']) AND $_POST['can_temp_ban'] == '1')
-            {
-                $permissions |= SERVER_TEMP_BAN;
-            }
-
-            if(isset($_POST['can_messages']) AND $_POST['can_messages'] == '1')
-            {
-                $permissions |= SERVER_MESSAGE;
-            }
-
-        	if(isset($_POST['can_message_rotation']) AND $_POST['can_message_rotation'] == '1')
-            {
-                $permissions |= SERVER_MESSAGE_ROTATION;
-            }
-
-            if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
-            {
-                $permissions |= SERVER_USER_LOG;
-            }
-            
-        	if(isset($_POST['can_playlists']) AND $_POST['can_playlists'] == '1')
-            {
-                $permissions |= SERVER_PLAYLIST;
-            }
-
-            DB::insert('servers_users', array('user_id', 'server_id', 'permissions'))
-                      ->values(array(
-                'user_id' => $user_id,
-                'server_id' => $server_id,
-                'permissions' => $permissions,
-            ))->execute();
-
-            $this->log_action(__('Added permissions to user :user for server: :server', array(
-                ':user' => ORM::factory('user', $user_id)->username,
-                ':server' => ORM::factory('server', $server_id)->name,
-            )));
-
-			$this->notice('Permissions added');
-			$this->request->redirect('servers/permissions');
-        }
-
-        $this->view = new View('servers/permissions');
-        $this->view->list = DB::select()->from('servers_users')->execute();
-
-        $this->view->servers = $servers;
-        $this->view->users = $users;
-    }
-
-    public function action_permissions_edit($user_id, $server_id)
-    {
-    	// Validate ID
-        if(!ctype_digit($user_id) OR !ctype_digit($server_id))
-        {
-            throw new Kohana_Exception('Invalid parameter');
-        }
-
-        $user_id = (int) $user_id; $server_id = (int) $server_id;
-        
-		$server = ORM::factory('server', $server_id);
-		$user = ORM::factory('user', $user_id);
-
-		if(!$server->loaded() OR !$user->loaded())
-		{
-			throw new Kohana_Exception('Invalid parameter');
-		}
-		
-		// Process POST
-		if ( isset($_POST['submit']) )
-		{
-			$permissions = 0;
-			
-			if(isset($_POST['can_kick']) AND $_POST['can_kick'] == '1')
-            {
-                $permissions |= SERVER_KICK;
-            }
-
-            if(isset($_POST['can_ban']) AND $_POST['can_ban'] == '1')
-            {
-                $permissions |= SERVER_BAN;
-            }
-
-            if(isset($_POST['can_temp_ban']) AND $_POST['can_temp_ban'] == '1')
-            {
-                $permissions |= SERVER_TEMP_BAN;
-            }
-
-            if(isset($_POST['can_messages']) AND $_POST['can_messages'] == '1')
-            {
-                $permissions |= SERVER_MESSAGE;
-            }
-            
-			if(isset($_POST['can_message_rotation']) AND $_POST['can_message_rotation'] == '1')
-            {
-                $permissions |= SERVER_MESSAGE_ROTATION;
-            }
-
-            if(isset($_POST['can_logs']) AND $_POST['can_logs'] == '1')
-            {
-                $permissions |= SERVER_USER_LOG;
-            }
-            
-        	if(isset($_POST['can_playlists']) AND $_POST['can_playlists'] == '1')
-            {
-                $permissions |= SERVER_PLAYLIST;
-            }
-            
-            DB::update('servers_users')->set(array('permissions'=>$permissions))
-            	->where('user_id', '=', $user_id)
-            	->where('server_id', '=', $server_id)
-            ->execute();
-            
-			$this->log_action(__('Edited :user permissions for server: :server', array(':user' => $user->username, ':server' => $server->name)));
-			
-			$this->notice('Permissions saved');
-			$this->request->redirect('servers/permissions');
-		}
-		
-		$permissions = DB::select('permissions')->from('servers_users')->where('user_id', '=', $user_id)->where('server_id', '=', $server_id)->execute();
-		$permissions = $permissions->as_array();
-		$permissions = (int) $permissions[0]['permissions'];
-		
-		$this->view = new View('servers/permissions_edit');
-
-        $this->view->server = $server;
-        $this->view->user = $user;
-        $this->view->permissions = $permissions;
-    }
-
-    public function action_permissions_delete($id, $id2)
-    {
-            // Validate ID
-        if(!ctype_digit($id) OR !ctype_digit($id2))
-        {
-            throw new Kohana_Exception('Invalid parameter');
-        }
-
-        $id = (int) $id; $id2 = (int) $id2;
-
-        $server = ORM::factory('server', $id2);
-        $user = ORM::factory('user', $id);
-
-        if(!$server->loaded() OR !$user->loaded())
-        {
-            throw new Kohana_Exception('Invalid parameter');
-        }
-
-        $this->log_action(__('Removed :user permissions for server: :server', array(':user' => $user->username, ':server' => $server->name)));
-
-        DB::delete('servers_users')->where('user_id', '=', $id)->where('server_id', '=', $id2)->execute();
-
-            $this->notice('Permissions removed');
-            $this->request->redirect('servers/permissions');
-    }
-
-    public function action_index()
-    {
-        if(isset($_POST['name']) AND isset($_POST['ip']) AND isset($_POST['port']) AND isset($_POST['password']) AND ctype_digit($_POST['port'])
-           AND filter_var($_POST['ip'], FILTER_VALIDATE_IP))
-        {
-            $server = new Model_Server;
-
-            $server->name = HTML::entities($_POST['name']);
-            $server->ip = HTML::entities($_POST['ip']);
-            $server->port = (int) $_POST['port'];
-            $server->password = Security::xss_clean($_POST['password']);
-
-            $server->save();
-
-            $this->log_action(__('Added server: :server', array(':server' => $server->name)));
-            $this->notice('Server added');
-            $this->request->redirect('servers');
-        }
-
-        $servers = ORM::factory('server')->find_all();
-
-        $this->title = __('Servers management');
-
-        $this->view = new View('servers/index');
-
-        $this->view->servers = $servers;
-    }
-
+    /**
+     * Delete server
+     *
+     * @param	string	$id
+     */
     public function action_delete($id)
     {
         // Validate ID
@@ -253,17 +49,27 @@ class Controller_Servers extends Controller_Main {
             throw new Kohana_Exception('Server not found');
         }
 
+        // Log action
         $this->log_action(__('Removed server: :server', array(':server' => $id->name)));
 
         // Delete
         $id->delete();
 
-        $this->notice('Server removed');
+        // Set notice and redirect
+        $this->notice(__('Server removed'));
         $this->request->redirect('servers');
     }
 
+    /**
+     * Edit server
+     *
+     * @param	string	$id
+     */
     public function action_edit($id)
     {
+        // Games
+        $games = Gameloader::get_games();
+
         // Validate ID
         if(!ctype_digit($id))
         {
@@ -279,27 +85,340 @@ class Controller_Servers extends Controller_Main {
             throw new Kohana_Exception('Server not found');
         }
 
+        // Submitted?
         if(isset($_POST['name']) AND isset($_POST['ip']) AND isset($_POST['port']) AND isset($_POST['password']) AND ctype_digit($_POST['port'])
-           AND filter_var($_POST['ip'], FILTER_VALIDATE_IP))
+           AND filter_var($_POST['ip'], FILTER_VALIDATE_IP) AND isset($_POST['game']) AND isset($games[$_POST['game']]))
         {
+            // Set name and IP
             $id->name = HTML::entities($_POST['name']);
             $id->ip = HTML::entities($_POST['ip']);
+
+            // Port and password
             $id->port = (int) $_POST['port'];
             $id->password = Security::xss_clean($_POST['password']);
 
+            // Game
+            $id->game = $_POST['game'];
+
+            // Save server
             $id->save();
 
+            // Log action
             $this->log_action(__('Updated server: :server', array(':server' => $id->name)));
 
+            // Notice and redirect
             $this->notice(__('Server updated'));
             $this->request->redirect('servers');
         }
 
         // Title
-        $this->title = 'Server edit';
+        $this->title = __('Edit server');
 
         // View
         $this->view = new View('servers/edit');
         $this->view->server = $id;
+        $this->view->games = $games;
+    }
+
+    /**
+     * Index action (view, add)
+     */
+    public function action_index()
+    {
+        // Games
+        $games = Gameloader::get_games();
+
+        // Form submitted?
+        if(isset($_POST['name']) AND isset($_POST['ip']) AND isset($_POST['port']) AND isset($_POST['password']) AND ctype_digit($_POST['port'])
+           AND filter_var($_POST['ip'], FILTER_VALIDATE_IP) AND isset($_POST['game']) AND isset($games[$_POST['game']]))
+        {
+            // Create new model
+            $server = new Model_Server;
+
+            // Set data
+            $server->name = HTML::entities($_POST['name']);
+            $server->ip = HTML::entities($_POST['ip']);
+            $server->port = (int) $_POST['port'];
+            $server->password = Security::xss_clean($_POST['password']);
+            $server->game = $_POST['game'];
+
+            // Save server
+            $server->save();
+
+            // Log action
+            $this->log_action(__('Added server: :server', array(':server' => $server->name)));
+
+            // Notice and redirect
+            $this->notice(__('Server added'));
+            $this->request->redirect('servers');
+        }
+
+        // Retrieve all servers
+        $servers = ORM::factory('server')->find_all();
+
+        // Set page title
+        $this->title = __('Servers management');
+
+        // Set page view
+        $this->view = new View('servers/index');
+
+        // Assign server list
+        $this->view->servers = $servers;
+
+        // Games
+        $this->view->games = $games;
+    }
+
+    /**
+     * Manage server permissions
+     */
+    public function action_permissions()
+    {
+        // Set page title
+        $this->title = __('Servers permissions');
+
+        // Variables to store servers and users
+        $servers = array();
+        $users = array();
+        $games = array();
+
+        // Retrieve servers
+        foreach(ORM::factory('server')->find_all() as $s)
+        {
+            $servers[$s->id] = $s->name;
+            $games[$s->id] = $s->game;
+        }
+
+        // Retrieve users
+        foreach(ORM::factory('user')->find_all() as $s)
+        {
+            $users[$s->id] = $s->username;
+        }
+
+        // Submitted
+        if(isset($_POST['user_id']) AND isset($_POST['server_id']) AND ctype_digit($_POST['user_id']) AND ctype_digit($_POST['server_id']))
+        {
+            // Cast
+            $server_id = (int) $_POST['server_id'];
+            $user_id = (int) $_POST['user_id'];
+
+            // Validate server and user
+            if(!isset($servers[$server_id]) OR !isset($users[$user_id]))
+            {
+                $this->notice(__('Invalid user or server'));
+                $this->request->redirect('servers/permissions');
+            }
+
+            // Server owned?
+            if(Model_Server::is_owned($user_id, $server_id))
+            {
+                $this->notice(__('Please use edit function to modify user permissions'));
+                $this->request->redirect('servers/permissions');
+            }
+
+            // Send to model
+            Model_Server::add_permissions($user_id, $server_id, $this->permissions($games[$server_id]));
+
+            // Log executed action
+            $this->log_action(__('Added permissions to user :user for server: :server', array(
+                ':user' => ORM::factory('user', $user_id)->username,
+                ':server' => ORM::factory('server', $server_id)->name,
+            )));
+
+            // Notice and redirect
+			$this->notice(__('Permissions added'));
+			$this->request->redirect('servers/permissions');
+        }
+
+        // View
+        $this->view = new View('servers/permissions');
+
+        // Get permissions
+        $this->view->list = Model_Server::get_permissions();
+
+        // Assign servers and users
+        $this->view->servers = $servers;
+        $this->view->users = $users;
+    }
+
+    /**
+     * Delete permissions
+     *
+     * @param	string	$user
+     * @param	string	$server
+     */
+    public function action_permissions_delete($user, $server)
+    {
+        // Validate ID
+        if(!ctype_digit($user) OR !ctype_digit($server))
+        {
+            throw new Kohana_Exception('Invalid parameter');
+        }
+
+        // Get server and user
+        $server = ORM::factory('server', (int) $server);
+        $user = ORM::factory('user', (int) $user);
+
+        // Loaded?
+        if(!$server->loaded() OR !$user->loaded())
+        {
+            throw new Kohana_Exception('Invalid parameter');
+        }
+
+        // Log action
+        $this->log_action(__('Removed :user permissions for server: :server', array(
+        ':user' => $user->username, ':server' => $server->name)));
+
+        // Delete permissions
+        Model_Server::delete_permissions($user->id, $server->id);
+
+        // Notice and redirect
+        $this->notice(__('Permissions removed'));
+        $this->request->redirect('servers/permissions');
+    }
+
+    /**
+     * Edit permissions
+     *
+     * @param	string	$user
+     * @param	string	$server
+     */
+    public function action_permissions_edit($user, $server)
+    {
+    	// Validate ID
+        if(!ctype_digit($user) OR !ctype_digit($server))
+        {
+            throw new Kohana_Exception('Invalid parameter');
+        }
+
+        // Get server and user
+		$server = ORM::factory('server', (int) $server);
+		$user = ORM::factory('user', (int) $user);
+
+		// Loaded?
+		if(!$server->loaded() OR !$user->loaded())
+		{
+			throw new Kohana_Exception('Invalid parameter');
+		}
+
+		// Owned?
+		if(!Model_Server::is_owned($user->id, $server->id))
+		{
+            throw new Kohana_Exception('Invalid parameter');
+		}
+
+		// Process POST
+		if(isset($_POST['submit']))
+		{
+            // Edit
+            Model_Server::edit_permissions($user->id, $server->id, $this->permissions($server->game));
+
+            // Log edit
+			$this->log_action(__('Edited :user permissions for server: :server',
+			array(':user' => $user->username, ':server' => $server->name)));
+
+			// Notice and redirect
+			$this->notice(__('Permissions saved'));
+			$this->request->redirect('servers/permissions');
+		}
+
+		// View
+		$this->view = new View('servers/permissions_edit');
+
+		// Server and user
+        $this->view->server = $server;
+        $this->view->user = $user;
+
+        // Retrieve permissions
+        $permissions = Model_Server::get_permissions($user->id, $server->id);
+
+        // Assign
+        $this->view->permissions = $permissions;
+
+        // Assign to field view
+        $this->view->fields = View::factory('servers/fields', array('current' => $permissions, 'fields' => Gameloader::get_permissions($server->game)))
+                                  ->render();
+    }
+
+    /**
+     * Permissions for specific server
+     *
+     * @param	string	$server
+     */
+    public function action_permissions_fields($server)
+    {
+        // Ajax?
+        if(!Request::$is_ajax OR !ctype_digit($server))
+        {
+            exit;
+        }
+
+        // Get server
+        $server = ORM::factory('server', (int) $server);
+
+        // Invalid server
+        if(!$server->loaded())
+        {
+            exit;
+        }
+
+        // Games
+        $games = Gameloader::get_games();
+
+        // Valid game?
+        if(!isset($games[$server->game]))
+        {
+            exit;
+        }
+
+        // Display
+        echo View::factory('servers/fields', array('current' => 0, 'fields' => Gameloader::get_permissions($server->game)))
+                                  ->render();
+
+        // Done
+        exit;
+    }
+
+    /**
+     * Set current tab and check permissions
+     *
+     * @see application/classes/controller/Controller_Main::before()
+     */
+    public function before()
+    {
+        // Parent
+        parent::before();
+
+        // Set current tab
+        $this->tab = 'servers';
+
+        // Check permissions
+        $this->do_force_login('servers');
+    }
+
+    /**
+     * Get permissions bitset
+     *
+     * @param	string
+     * @return	int
+     */
+    protected function permissions($game = NULL)
+    {
+        // Bitset
+        $bitset = 0;
+
+        // Iterate
+        foreach(Gameloader::get_permissions($game) as $k => $v)
+        {
+            // Isset?
+            if(isset($_POST[$k]) AND $_POST[$k] == '1')
+            {
+                // Add
+                $bitset |= $v['bit'];
+            }
+        }
+
+        // Return bitset
+        return $bitset;
     }
 }

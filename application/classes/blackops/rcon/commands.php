@@ -1,26 +1,45 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
 /**
- * Remote console commands
+ * Blackops rcon commands
  *
- * @author		EpicLegion
+ * Copyright (c) 2010, EpicLegion
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @author		EpicLegion, Maximusya
  * @package		rcon
  * @subpackage	lib
+ * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
-class Rcon_Commands {
+class Blackops_Rcon_Commands {
 
     /**
      * Rcon connection
      *
-     * @var	Rcon
+     * @var	Blackops_Rcon
      */
     protected $console = NULL;
 
     /**
      * Constructor
      *
-     * @param	Rcon	$console
+     * @param	Blackops_Rcon	$console
      */
-    public function __construct(Rcon $console)
+    public function __construct(Blackops_Rcon $console)
     {
         $this->console = $console;
     }
@@ -66,22 +85,31 @@ class Rcon_Commands {
         }
     }
 
+    /**
+     * Get current playlist
+     *
+     * @return	int|bool
+     */
     public function get_playlist()
     {
+        // Query server
     	$response = $this->console->command('playlist');
+
     	/*
     	 * playlist
 			"playlist" is: "30" default: "1"
 			  Domain is any integer from 0 to 64
     	 */
-    	if ( preg_match('%"playlist" is: "(\d+)"%', $response, $match) )
+
+    	// Get playlist
+    	if(preg_match('%"playlist" is: "(\d+)"%', $response, $match))
     	{
-    		$playlist = (int) $match[1];
-    		return $playlist;
+    	    // Return matched playlist
+    		return (int) $match[1];
     	}
-    	else 
+    	else
     	{
-    		return false;
+    		return FALSE;
     	}
     }
 
@@ -92,18 +120,21 @@ class Rcon_Commands {
      */
     public function get_server_info()
     {
-        $teamstatus = $this->get_teamstatus();
-        $server_info = $this->get_real_server_info();
-        $info = array_merge($teamstatus, $server_info);
-        
-        return $info;
+        return array_merge($this->get_teamstatus(), $this->get_real_server_info());
     }
-    
+
+    /**
+     * Teamstatus query
+     *
+     * @return	array
+     */
     public function get_teamstatus()
     {
     	// Send command
         $raw_response = $this->console->command('teamstatus');
-        if ( empty($raw_response) )
+
+        // Try again
+        if(empty($raw_response))
         {
         	$raw_response = $this->console->command('teamstatus');
         }
@@ -130,7 +161,7 @@ class Rcon_Commands {
         unset($response[0], $response[1], $response[2]);
 
         // Reader object
-        $parser = new Rcon_Statusparser;
+        $parser = new Blackops_Rcon_Statusparser;
 
         // Iterate players
         foreach($response as $line)
@@ -148,18 +179,22 @@ class Rcon_Commands {
             $teamstatus['players'][$line['id']] = $line;
         }
 
-        // Kohana cache
-        Kohana::cache('teamstatus', $teamstatus, 3600);
-
         // Return
         return $teamstatus;
     }
-    
+
+    /**
+     * Get real server info
+     *
+     * @return	array
+     */
     public function get_real_server_info()
     {
     	// Send command
         $raw_response = $this->console->command('serverinfo');
-    	if ( empty($raw_response) )
+
+        // Try again
+    	if(empty($raw_response))
         {
         	$raw_response = $this->console->command('serverinfo');
         }
@@ -176,20 +211,26 @@ class Rcon_Commands {
         // Remove header
         unset($response[0]);
 
-        // Iterate players
+        // Vars
+        $server_info = array();
+        $var_name = '';
+        $var_value = '';
+
+        // Iterate info
         foreach($response as $line)
         {
+            // Tokenize
         	$var_name = strtok($line, ' ');
+
+        	// Value
         	$var_value = trim(substr($line, strlen($var_name)));
-            
-        	if ( $var_name !== false )
+
+        	// Set var
+        	if($var_name !== FALSE)
         	{
-        		$server_info[$var_name] = is_numeric($var_value) ? intval($var_value) : $var_value;
+        		$server_info[$var_name] = is_numeric($var_value) ? (int) $var_value : $var_value;
         	}
         }
-
-        // Kohana cache
-        Kohana::cache('serverinfo', $server_info, 60);
 
         // Return
         return $server_info;
@@ -231,7 +272,7 @@ class Rcon_Commands {
         }
         else
         {
-            // Client ID have to be int
+            // Cast
             $client = (int) $client;
 
             // Send tell command
@@ -242,9 +283,9 @@ class Rcon_Commands {
     /**
      * Set rcon console
      *
-     * @param	Rcon	$console
+     * @param	Blackops_Rcon	$console
      */
-    public function set_rcon(Rcon $console)
+    public function set_rcon(Blackops_Rcon $console)
     {
         $this->console = $console;
     }

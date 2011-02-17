@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `{dbp}servers` (
   `ip` varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0.0.0.0',
   `port` int(5) unsigned NOT NULL DEFAULT '3074',
   `password` varchar(127) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `game` varchar(127) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'blackops',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 

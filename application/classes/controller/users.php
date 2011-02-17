@@ -1,4 +1,5 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
+
 /**
  * User controller
  *
@@ -25,160 +26,6 @@
  * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
 class Controller_Users extends Controller_Main {
-
-    /**
-     * Set current tab and check permissions
-     *
-     * @see Deploy/application/classes/controller/Controller_Main::before()
-     */
-    public function before()
-    {
-        // Run parent constructor
-        parent::before();
-
-        // Set tab
-        $this->tab = 'users';
-
-        // Check permissions
-        if($this->request->action == 'logs')
-        {
-            $this->do_force_login('logs');
-        }
-        else
-        {
-            $this->do_force_login('users');
-        }
-    }
-
-    /**
-     * View users
-     */
-    public function action_index()
-    {
-        // Submitted form?
-        if(isset($_POST['username']) AND !empty($_POST['username']))
-        {
-            // Check other required fields
-            if(!isset($_POST['password']) OR empty($_POST['password']) OR !isset($_POST['password_confirm']) OR empty($_POST['password_confirm'])
-               OR !isset($_POST['email']) OR empty($_POST['email']))
-            {
-                // Notice
-                $this->notice(__('Password, password confirmation and email is required'));
-
-                // Redirect
-                $this->request->redirect('users/index');
-            }
-
-            // Validate username
-            if(!preg_match('/^[-\pL\pN_.]++$/uD', $_POST['username']))
-            {
-                $error = 'Invalid username format';
-            }
-
-            // Username length
-            if(UTF8::strlen($_POST['username']) > 32 OR UTF8::strlen($_POST['username']) < 4)
-            {
-                $error = 'Invalid username length (min. 4, max. 32)';
-            }
-
-            // Password
-            if(UTF8::strlen($_POST['password']) > 42 OR UTF8::strlen($_POST['password']) < 5)
-            {
-                $error = 'Invalid password length (min. 5, max. 42)';
-            }
-
-            // Password confirmation
-            if($_POST['password_confirm'] != $_POST['password'])
-            {
-                $error = 'Entered passwords does not match';
-            }
-
-            // Email
-            if(UTF8::strlen($_POST['email']) > 127 OR UTF8::strlen($_POST['email']) < 4 OR !Validate::email($_POST['email']))
-            {
-                $error = 'Invalid email (format or length)';
-            }
-
-            // Already exists?
-            if(ORM::factory('user', array('username' => $_POST['username']))->loaded())
-            {
-                $error = 'The username is already in use';
-            }
-
-            // Email?
-            if(ORM::factory('user', array('email' => $_POST['email']))->loaded())
-            {
-                $error = 'Email is already in use';
-            }
-
-            // Any errors?
-            if(isset($error))
-            {
-                // Notice
-                $this->notice(__($error));
-
-                // Redirect
-                $this->request->redirect('users/index');
-            }
-
-            // New user object
-            $user = new Model_User;
-
-            // Validate once more
-            if($user->values($_POST)->check())
-            {
-                // Save
-                $user->save();
-
-                // Add login role
-                $user->add('roles', new Model_Role(array('name' => 'login')));
-
-                // Logs management permission
-                if(isset($_POST['can_log']) AND $_POST['can_log'] == '1')
-                {
-                    $user->add('roles', new Model_Role(array('name' => 'logs')));
-                }
-
-                // User management
-                if(isset($_POST['can_users']) AND $_POST['can_users'] == '1')
-                {
-                    $user->add('roles', new Model_Role(array('name' => 'users')));
-                }
-
-                // Server management
-                if(isset($_POST['can_servers']) AND $_POST['can_servers'] == '1')
-                {
-                    $user->add('roles', new Model_Role(array('name' => 'servers')));
-                }
-
-                // Log action
-                $this->log_action(__('Added user: :user', array(':user' => $user->username)));
-
-                // Notify user
-                $this->notice(__('User has been added'));
-
-                // Redirect
-                $this->request->redirect('users');
-            }
-            else
-            {
-                // Unknown error
-                $this->notice(__('Cannot create user account'));
-
-                // Redirect
-                $this->request->redirect('users');
-            }
-        }
-
-        // Current title
-        $this->title = __('User management');
-
-        // View
-        $this->view = new View('users/index');
-
-        // Retrieve users
-        $this->view->users = ORM::factory('user')->find_all();
-    }
 
     /**
      * Delete user
@@ -317,6 +164,136 @@ class Controller_Users extends Controller_Main {
     }
 
     /**
+     * View users
+     */
+    public function action_index()
+    {
+        // Submitted form?
+        if(isset($_POST['username']) AND !empty($_POST['username']))
+        {
+            // Check other required fields
+            if(!isset($_POST['password']) OR empty($_POST['password']) OR !isset($_POST['password_confirm']) OR empty($_POST['password_confirm'])
+               OR !isset($_POST['email']) OR empty($_POST['email']))
+            {
+                // Notice
+                $this->notice(__('Password, password confirmation and email is required'));
+
+                // Redirect
+                $this->request->redirect('users/index');
+            }
+
+            // Validate username
+            if(!preg_match('/^[-\pL\pN_.]++$/uD', $_POST['username']))
+            {
+                $error = 'Invalid username format';
+            }
+
+            // Username length
+            if(UTF8::strlen($_POST['username']) > 32 OR UTF8::strlen($_POST['username']) < 4)
+            {
+                $error = 'Invalid username length (min. 4, max. 32)';
+            }
+
+            // Password
+            if(UTF8::strlen($_POST['password']) > 42 OR UTF8::strlen($_POST['password']) < 5)
+            {
+                $error = 'Invalid password length (min. 5, max. 42)';
+            }
+
+            // Password confirmation
+            if($_POST['password_confirm'] != $_POST['password'])
+            {
+                $error = 'Entered passwords does not match';
+            }
+
+            // Email
+            if(UTF8::strlen($_POST['email']) > 127 OR UTF8::strlen($_POST['email']) < 4 OR !Validate::email($_POST['email']))
+            {
+                $error = 'Invalid email (format or length)';
+            }
+
+            // Already exists?
+            if(ORM::factory('user', array('username' => $_POST['username']))->loaded())
+            {
+                $error = 'The username is already in use';
+            }
+
+            // Email?
+            if(ORM::factory('user', array('email' => $_POST['email']))->loaded())
+            {
+                $error = 'Email is already in use';
+            }
+
+            // Any errors?
+            if(isset($error))
+            {
+                // Notice
+                $this->notice(__($error));
+
+                // Redirect
+                $this->request->redirect('users/index');
+            }
+
+            // New user object
+            $user = new Model_User;
+
+            // Validate once more
+            if($user->values($_POST)->check())
+            {
+                // Save
+                $user->save();
+
+                // Add login role
+                $user->add('roles', new Model_Role(array('name' => 'login')));
+
+                // Logs management permission
+                if(isset($_POST['can_log']) AND $_POST['can_log'] == '1')
+                {
+                    $user->add('roles', new Model_Role(array('name' => 'logs')));
+                }
+
+                // User management
+                if(isset($_POST['can_users']) AND $_POST['can_users'] == '1')
+                {
+                    $user->add('roles', new Model_Role(array('name' => 'users')));
+                }
+
+                // Server management
+                if(isset($_POST['can_servers']) AND $_POST['can_servers'] == '1')
+                {
+                    $user->add('roles', new Model_Role(array('name' => 'servers')));
+                }
+
+                // Log action
+                $this->log_action(__('Added user: :user', array(':user' => $user->username)));
+
+                // Notify user
+                $this->notice(__('User has been added'));
+
+                // Redirect
+                $this->request->redirect('users');
+            }
+            else
+            {
+                // Unknown error
+                $this->notice(__('Cannot create user account'));
+
+                // Redirect
+                $this->request->redirect('users');
+            }
+        }
+
+        // Current title
+        $this->title = __('User management');
+
+        // View
+        $this->view = new View('users/index');
+
+        // Retrieve users
+        $this->view->users = ORM::factory('user')->find_all();
+    }
+
+    /**
      * Actions log
      */
     public function action_logs()
@@ -328,8 +305,30 @@ class Controller_Users extends Controller_Main {
         $this->view = new View('users/logs');
 
         // Get logs
-        $this->view->logs = DB::select('logs.id', 'logs.content', 'logs.date', 'users.username')->order_by('logs.id', 'DESC')
-                              ->join('users', 'LEFT')->on('users.id', '=', 'logs.user_id')
-                              ->from('logs')->execute();
+        $this->view->logs = Model_Log::get();
+    }
+
+    /**
+     * Set current tab and check permissions
+     *
+     * @see application/classes/controller/Controller_Main::before()
+     */
+    public function before()
+    {
+        // Run parent constructor
+        parent::before();
+
+        // Set tab
+        $this->tab = 'users';
+
+        // Check permissions
+        if($this->request->action == 'logs')
+        {
+            $this->do_force_login('logs');
+        }
+        else
+        {
+            $this->do_force_login('users');
+        }
     }
 }

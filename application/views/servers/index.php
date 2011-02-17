@@ -14,6 +14,7 @@
 			<td><?php echo __('Server name') ?></td>
 			<td><?php echo __('Host') ?></td>
 			<td><?php echo __('Port') ?></td>
+			<td><?php echo __('Game') ?></td>
 			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
@@ -24,6 +25,7 @@
 			<td><?php echo $s->name ?></td>
 			<td><?php echo $s->ip ?></td>
 			<td><?php echo $s->port ?></td>
+			<td><?php echo isset($games[$s->game]) ? $games[$s->game] : 'Unknown' ?></td>
 			<td>
                 <a href="<?php echo URL::site('servers/edit/'.$s->id) ?>" class="button" style="background-image: url(images/edit.png)"><?php echo __('Edit') ?></a>
                 <a href="<?php echo URL::site('servers/delete/'.$s->id) ?>" class="button" style="background-image: url(images/delete.png)"><?php echo __('Delete') ?></a>
@@ -51,6 +53,10 @@
 			<div>
 				<label><?php echo __('RCon password') ?>:</label>
 				<input type="text" name="password" value="" />
+			</div>
+			<div>
+				<label><?php echo __('Game') ?>:</label>
+				<?php echo Form::select('game', $games) ?>
 			</div>
 			<div>
 				<input style="width: auto" type="submit" name="submit" value="<?php echo __('Add') ?>" />

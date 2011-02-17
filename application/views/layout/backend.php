@@ -28,12 +28,10 @@
         	<li<?php if($tab == 'rcon'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('dashboard/index') ?>"><?php echo __('Server console') ?></a></li>
 			<li<?php if($tab == 'users'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('users/index') ?>"><?php echo __('Users') ?></a></li>
 			<li<?php if($tab == 'servers'): ?> class="active"<?php endif; ?>><a href="<?php echo URL::site('servers/index') ?>"><?php echo __('Servers') ?></a></li>
-        </ul>
-        <?php if($notice): ?>
-        <div class="message"><?php echo $notice ?></div>
-        <?php endif; ?>
+        </ul><?php if($notice): ?>
+        <div class="message"><?php echo $notice ?></div><?php endif; ?>
         <div id="container">
-        <?php echo $content ?>
+<?php echo $content ?>
         </div>
         <div id="footer">
             Created by <a href="mailto:me2.legion@gmail.com">EpicLegion</a><br />

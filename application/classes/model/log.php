@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Message model
+ * Log model
  *
  * Copyright (c) 2010, EpicLegion
  * All rights reserved.
@@ -25,18 +25,35 @@
  * @subpackage	model
  * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
-class Model_Message extends ORM {
+class Model_Log extends Model {
 
     /**
-     * Get server rotation messages
+     * Add log to database
      *
-     * @param	int	$server
+     * @param	int		$user
+     * @param	string	$action
      */
-    public static function get_messages($server)
+    static public function add($user, $action)
     {
-        return DB::select('messages.id', 'messages.message', 'users.username')
-                 ->where('server_id', '=', (int) $server)
-                 ->join('users', 'LEFT')->on('users.id', '=', 'messages.user_id')
-                 ->from('messages')->order_by('messages.id', 'DESC')->execute();
+        // Insert to `logs` table
+        DB::insert('logs', array('user_id', 'date', 'content'))->values(array(
+            (int) $user, date('Y-m-d H:i:s'), $action
+        ))->execute();
+    }
+
+    /**
+     * Retrieve logs
+     *
+     * @param	string	$order_item
+     * @param	string	$order
+     */
+    static public function get($order_item = 'logs.id', $order = 'DESC')
+    {
+        // Get result
+        return DB::select('logs.id', 'logs.content', 'logs.date', 'users.username')
+                 ->join('users', 'LEFT')->on('users.id', '=', 'logs.user_id')
+                 ->order_by($order_item, ($order == 'DESC') ? 'DESC' : 'ASC')
+                 ->from('logs')
+                 ->execute();
     }
 }

@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Message model
+ * Player log model
  *
  * Copyright (c) 2010, EpicLegion
  * All rights reserved.
@@ -25,18 +25,45 @@
  * @subpackage	model
  * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
  */
-class Model_Message extends ORM {
+class Model_Player extends Model {
 
     /**
-     * Get server rotation messages
+     * Get details for this player
      *
-     * @param	int	$server
+     * @param	int		$server
+     * @param	int		$guid
+     * @return	array
      */
-    public static function get_messages($server)
+    public static function get_details($server, $guid)
     {
-        return DB::select('messages.id', 'messages.message', 'users.username')
-                 ->where('server_id', '=', (int) $server)
-                 ->join('users', 'LEFT')->on('users.id', '=', 'messages.user_id')
-                 ->from('messages')->order_by('messages.id', 'DESC')->execute();
+        // Execute query
+        $query = DB::select('names', 'ip_addresses')->where('server_id', '=', (int) $server)
+                   ->where('id', '=', (int) $guid)->limit(1)->from('players')->execute();
+
+        // Any rows
+        if(count($query) <= 0)
+        {
+            return array();
+        }
+
+        // As array
+        $query = $query->as_array();
+
+        // Return first row
+        return $query[0];
+    }
+
+    /**
+     * Get logs
+     *
+     * @param	int				$server
+     * @param	string			$order
+     * @return	Database_Result
+     */
+    public static function get_logs($server, $order = 'last_update')
+    {
+        return DB::select('*')->where('server_id', '=', (int) $server)
+                              ->from('players')
+                              ->order_by($order, 'DESC')->execute();
     }
 }

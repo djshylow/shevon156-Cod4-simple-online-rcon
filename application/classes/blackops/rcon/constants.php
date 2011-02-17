@@ -1,6 +1,31 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-abstract class Rcon_Constants
+/**
+ * Blackops constants
+ *
+ * Copyright (c) 2010, EpicLegion
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @author		Maximusya
+ * @package		rcon
+ * @subpackage	lib
+ * @license		http://www.opensource.org/licenses/bsd-license.php	New BSD License
+ */
+abstract class Blackops_Rcon_Constants
 {
 	public static $playlists = array(
 						1 => 'Team Deathmatch',
@@ -61,7 +86,7 @@ abstract class Rcon_Constants
 						56 => 'Barebones Sabotage 12 players',
 						57 => 'Barebones Team Tactical 12 players',
 	); // end of playlists
-	
+
 	const pls_Team_Deathmatch = 1;
 	const pls_Free_For_All = 2;
 	const pls_Capture_The_Flag = 3;
@@ -119,27 +144,27 @@ abstract class Rcon_Constants
 	const pls_Barebones_Domination_12_players = 55;
 	const pls_Barebones_Sabotage_12_players = 56;
 	const pls_Barebones_Team_Tactical_12_players = 57;
-	
+
 	public static function getHardcorePlaylists($return_small = false)
 	{
 		return self::getPlaylistsByMode(self::gamemode_Hardcore, $return_small);
 	}
-	
+
 	public static function getNormalPlaylists($return_small = false)
 	{
 		return self::getPlaylistsByMode(self::gamemode_Normal, $return_small);
 	}
-	
+
 	public static function getWagerPlaylists($return_small = false)
 	{
 		return self::getPlaylistsByMode(self::gamemode_Wager, $return_small);
 	}
-	
+
 	public static function getBarebonesPlaylists($return_small = false)
 	{
 		return self::getPlaylistsByMode(self::gamemode_Barebones, $return_small);
 	}
-	
+
 	/**
 	 * Return playlists filtered by mode and size
 	 * @param [optional] string $mode one of (all, wager, normal, hardcore, barebones )
@@ -149,34 +174,34 @@ abstract class Rcon_Constants
 	public static function getPlaylistsByMode($mode = 'all', $small = false)
 	{
 		// lets juggle with arrays a bit :D
-		
+
 		if ( $mode === 'all' ) return self::$playlists;
 		if ( $mode === 'wager' ) return array_intersect_key(self::$playlists, array_flip(array(26,27,28,29)));
-		if ( $mode === 'normal') 
+		if ( $mode === 'normal')
 		{
 			if ( $small ) return array_intersect_key(self::$playlists, array_flip(array(32,33,34,35,36,37,38,39,40)));
 			else return array_intersect_key(self::$playlists, array_flip(array(1,2,3,4,5,6,7,8,25)));
 		}
-		if ( $mode === 'hardcore') 
+		if ( $mode === 'hardcore')
 		{
 			if ( $small ) return array_intersect_key(self::$playlists, array_flip(array(41,42,43,44,45,46,47,48,49)));
 			else return array_intersect_key(self::$playlists, array_flip(array(9,10,11,12,13,14,15,16,30)));
 		}
-		if ( $mode === 'barebones') 
+		if ( $mode === 'barebones')
 		{
 			if ( $small ) return array_intersect_key(self::$playlists, array_flip(array(50,51,52,53,54,55,56,57)));
 			else return array_intersect_key(self::$playlists, array_flip(array(17,18,19,20,21,22,23,24,31)));
 		}
-		
-		//else 
+
+		//else
 		return array();
 	}
-	
+
 	public static function getPlaylistsByType($gametype)
 	{
 		if ( !array_key_exists($gametype, self::$gametypes) )
 			return false;
-		
+
 		switch ($gametype)
 		{
 			case self::gametype_CTF : return array_intersect_key(self::$playlists, array_flip(array(3,11,19,34,43,52)));
@@ -194,44 +219,44 @@ abstract class Rcon_Constants
 			default: return false;
 		}
 	}
-	
+
 	public static $gamemodes = array(
 		'wager'		=> 'Wager Matches',
 		'normal'	=> 'Normal Matches',
 		'hardcore'	=> 'Hardcore Matches',
 		'barebones'	=> 'Barebones Matches'
 	);
-	
+
 	const gamemode_Wager  = 'wager';
 	const gamemode_Normal = 'normal';
 	const gamemode_Hardcore = 'hardcore';
 	const gamemode_Barebones = 'barebones';
-	
+
 	/**
 	 * Derive playlist from $gametype using $mode hint
-	 * @param $gametype @see Rcon_Constants::$gametypes for possible values
+	 * @param $gametype @see Blackops_Rcon_Constants::$gametypes for possible values
 	 * @param $mode one of (normal, hardcore, barebones)
 	 */
 	public static function getPlaylistByGametype($gametype, $mode, $small = false)
 	{
 		if ( !array_key_exists($gametype, self::$gametypes) ) return false;
-		
+
 		$gtgms = array_keys();
-		
+
 		switch ($gametype)
 		{
 			case 'hlnd': return self::pls_Sticks_And_Stones;
 			case 'gun' : return self::pls_Gun_Game;
 			case 'shrp': return self::pls_Sharpshooter;
 			case 'oic' : return self::pls_One_In_The_Chamber;
-			
+
 			case 'tdm' :
 				{
-					
+
 				}
 		}
 	}
-	
+
 	public static $gametypes = array(
 						'tdm' => 'Team Deathmatch',
 						'dm' => 'Free For All',
@@ -246,7 +271,7 @@ abstract class Rcon_Constants
 						'shrp' => 'Sharpshooter',
 						'oic' => 'One In The Chamber'
 	); // end of gametypes
-	
+
 	public static $gametypes_abbrev = array(
 						'tdm' => 'TDM',
 						'dm' => 'FFA',
@@ -261,7 +286,7 @@ abstract class Rcon_Constants
 						'shrp' => 'SHRP',
 						'oic' => 'OIC'
 	);
-	
+
 	const gametype_TDM = 'tdm';
 	const gametype_FFA = 'dm';
 	const gametype_SAB = 'sab';
@@ -274,7 +299,7 @@ abstract class Rcon_Constants
 	const gametype_GUN = 'gun';
 	const gametype_SHRP = 'shrp';
 	const gametype_OIC = 'oic';
-	
+
 	public static $gtgms = array(
 						'tdm' => array(
 							array(self::pls_Team_Deathmatch, self::pls_Team_Deathmatch_12_players),
@@ -287,7 +312,7 @@ abstract class Rcon_Constants
 							array(self::pls_Barebones_Free_For_All, self::pls_Barebones_Free_For_All_12_players)
 						),
 						'sab' => array(
-							
+
 						),
 						'dem' => 'Demolition',
 						'ctf' => 'Capture The Flag',
@@ -299,7 +324,7 @@ abstract class Rcon_Constants
 						'shrp' => 'Sharpshooter',
 						'oic' => 'One In The Chamber'
 	);
-	
+
 	public static $maps = array(
 						'mp_array' => 'Array',
 						'mp_cracked' => 'Cracked',
@@ -316,7 +341,7 @@ abstract class Rcon_Constants
 						'mp_villa' => 'Villa',
 						'mp_russianbase' => 'WMD',
 	); // end of maps
-	
+
 	public static $colors = array(
 						0 => 'black',
 						1 => 'red',
@@ -329,17 +354,15 @@ abstract class Rcon_Constants
 						8 => 'grey',
 						9 => 'brown',
 	); // end of colors
-	
+
 	public static function colorize($string)
 	{
 		if (empty($string)) return false;
-		
+
 		$string = htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
-		
+
 		$result = preg_replace('/\^(\d)(.*?)(?=\^\d|$)/e', "'<font color=\"'.self::\$colors[\\1].'\">\\2</font>'", $string);
-		
+
 		return $result;
 	}
 }
-
-//echo Rcon_Constants::colorize('^2By^1fly ^6[All incl.*] ^9H^5C ^4Ranked^8 #2');

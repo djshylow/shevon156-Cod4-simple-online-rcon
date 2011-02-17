@@ -90,6 +90,9 @@ foreach(scandir(ROOT_PATH.'plugins') as $file)
 // Iterate servers
 foreach($db->getAll("SELECT * FROM [prefix]servers") as $server)
 {
+    // Black ops only ... for now
+    if($server['game'] != 'blackops') continue;
+
     // Clean data
     $server['port'] = (int) $server['port'];
     $server['id'] = (int) $server['id'];

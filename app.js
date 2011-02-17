@@ -94,6 +94,30 @@ function rconTempBan(id)
     });
 }
 
+function rconPermFields(dropdown)
+{
+	// Value
+	dropdown = $(dropdown).val();
+	
+	// Empty?
+	if(dropdown == '0')
+	{
+		return;
+	}
+	
+	// Hide
+	$('#permission-fields').hide('slow');
+	
+	// AJAX
+    $.get(BASE_URL+'index.php/servers/permissions_fields/'+dropdown, function(data) {
+        // Set
+    	$('#permission-fields').html(data);
+    	
+    	// Show
+    	$('#permission-fields').show('slow');
+    });
+}
+
 $(document).ready(function(){
 	$('.leftmenu li').click(function(){
 		var anchor = $(this).find('a');

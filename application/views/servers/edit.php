@@ -19,6 +19,10 @@
 				<input type="text" name="password" value="<?php echo $server->password ?>" />
 			</div>
 			<div>
+				<label><?php echo __('Game') ?>:</label>
+				<?php echo Form::select('game', $games, $server->game) ?>
+			</div>
+			<div>
 				<input style="width: auto" type="submit" name="submit" value="<?php echo __('Apply') ?>" />
 			</div>
 		</form>

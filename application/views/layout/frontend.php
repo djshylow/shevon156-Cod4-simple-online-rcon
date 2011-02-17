@@ -10,11 +10,9 @@
     <body>
         <div id="logo" style="margin-bottom: 10px">
             <h1>Black Ops Remote Console</h1>
-        </div>
-        <?php if($notice): ?>
-        <div class="message"><?php echo $notice ?></div>
-        <?php endif; ?>
-        <?php echo $content ?>
+        </div><?php if($notice): ?>
+        <div class="message"><?php echo $notice ?></div><?php endif; ?>
+<?php echo $content ?>
         <div id="footer">
             Created by <a href="mailto:me2.legion@gmail.com">EpicLegion</a><br />
             Some Icons are Copyright &copy; <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>. All rights reserved

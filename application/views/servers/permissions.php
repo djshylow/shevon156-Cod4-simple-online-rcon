@@ -13,7 +13,7 @@
 		<tr>
 			<td><?php echo __('User') ?></td>
 			<td><?php echo __('Server') ?></td>
-			<td><?php echo __('Can kick/ban/temp ban/message/message rotation/user log/playlists') ?></td>
+			<td><?php echo __('Permission bitset') ?></td>
 			<td><?php echo __('Actions') ?></td>
 		</tr>
 	</thead>
@@ -24,13 +24,7 @@
 			<td><?php echo $users[$s['user_id']] ?></td>
 			<td><?php echo $servers[$s['server_id']] ?></td>
 			<td>
-			    <?php echo ($permissions & SERVER_KICK) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_BAN) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_TEMP_BAN) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_MESSAGE) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_MESSAGE_ROTATION) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_USER_LOG) ? 'Yes' : 'No' ?>/
-			    <?php echo ($permissions & SERVER_PLAYLIST) ? 'Yes' : 'No' ?>
+			    <?php echo $permissions ?>
 			</td>
 			<td>
 				<a href="<?php echo URL::site('servers/permissions_edit/'.$s['user_id'].'/'.$s['server_id']) ?>" class="button" style="background-image: url(images/edit.png)"><?php echo __('Edit') ?></a>
@@ -40,6 +34,9 @@
 		<?php endforeach; ?>
 	</tbody>
 </table>
+<?php
+$servers['0'] = '---';
+?>
 <h2><?php echo __('Assign new permissions') ?></h2>
 <div class="group">
 	<div class="content">
@@ -50,35 +47,9 @@
 			</div>
 			<div>
 				<label><?php echo __('Server') ?>:</label>
-				<?php echo Form::select('server_id', $servers) ?>
+				<?php echo Form::select('server_id', $servers, '0', array('onchange' => 'rconPermFields(this)')) ?>
 			</div>
-			<div>
-				<label><?php echo __('Can kick') ?>:</label>
-				<input type="checkbox" name="can_kick" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can ban') ?>:</label>
-				<input type="checkbox" name="can_ban" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can temp ban') ?>:</label>
-				<input type="checkbox" name="can_temp_ban" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can send messages') ?>:</label>
-				<input type="checkbox" name="can_messages" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can manage message rotations') ?>:</label>
-				<input type="checkbox" name="can_message_rotation" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can view user logs') ?>:</label>
-				<input type="checkbox" name="can_logs" style="width: auto" value="1" />
-			</div>
-			<div>
-				<label><?php echo __('Can set playlists') ?>:</label>
-				<input type="checkbox" name="can_playlists" style="width: auto" value="1" />
+			<div id="permission-fields">
 			</div>
 			<div>
 				<input style="width: auto" type="submit" name="submit" value="<?php echo __('Add/Apply') ?>" />
